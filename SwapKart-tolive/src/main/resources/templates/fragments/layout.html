@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwapKart Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .chat-container {
+            height: calc(100vh - 100px);
+        }
+        .chat-list {
+            border-right: 1px solid #dee2e6;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .chat-messages {
+            height: calc(100% - 150px);
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .chat-input {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 1rem;
+            background: white;
+            border-top: 1px solid #dee2e6;
+        }
+        .message {
+            margin-bottom: 1rem;
+            max-width: 70%;
+        }
+        .message.sent {
+            margin-left: auto;
+            background-color: #007bff;
+            color: white;
+            border-radius: 1rem 1rem 0 1rem;
+        }
+        .message.received {
+            margin-right: auto;
+            background-color: #f1f1f1;
+            border-radius: 1rem 1rem 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">SwapKart Chat</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3" sec:authentication="name"></span>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div th:replace="~{fragments/header :: header}"></div>
+        <main>
+            <div th:replace="~{::main}"></div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script th:inline="javascript">
+        const currentUserId = /*[[${currentUser?.id}]]*/ 0;
+    </script>
+    <script th:src="@{/js/chat.js}"></script>
+</body>
+</html>

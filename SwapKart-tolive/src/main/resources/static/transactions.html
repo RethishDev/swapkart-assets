@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - SwapKart</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --border-radius: 0.5rem;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fb;
+            color: #333;
+        }
+
+        .transaction-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+        .transaction-card.pending {
+            border-left-color: var(--warning);
+        }
+
+        .transaction-card.completed {
+            border-left-color: var(--success);
+        }
+
+        .transaction-card.rejected {
+            border-left-color: #dc3545;
+        }
+
+        .transaction-item-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--primary);
+        }
+
+        .nav-pills .nav-link {
+            color: var(--dark);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .action-buttons .btn {
+            min-width: 100px;
+            margin: 0 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .transaction-card {
+                margin-bottom: 0.75rem;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+                margin: 0.25rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/">SwapKart</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/items.html">Browse</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/my-items.html">My Items</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/transactions.html">Transactions</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <a href="#" class="nav-link text-white position-relative" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell fa-lg"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationBadge">
+                                0
+                            </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown" id="notificationDropdown">
+                        <li><h6 class="dropdown-header">New Notifications</h6></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li class="text-center py-2">
+                            <p class="text-muted mb-0">No new notifications</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <a href="#" class="nav-link text-white dropdown-toggle" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle fa-lg me-1"></i>
+                        <span id="usernameNav">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="/profile.html"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" href="/settings.html"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 9999; margin-top: 70px;"></div>
+
+<!-- Main Content -->
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-0">Transaction History</h2>
+            <p class="text-muted">View and manage your item transactions</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <button class="btn btn-outline-primary mb-2 status-filter active" data-status="all" data-filter="all">
+                            <i class="fas fa-list me-2"></i>All Transactions
+                        </button>
+                        <button class="btn btn-outline-primary mb-2 status-filter" data-status="PENDING" data-filter="pending">
+                            <i class="fas fa-clock me-2"></i>Pending
+                        </button>
+                        <button class="btn btn-outline-success mb-2 status-filter" data-status="ACCEPTED" data-filter="completed">
+                            <i class="fas fa-check-circle me-2"></i>Completed
+                        </button>
+                        <button class="btn btn-outline-danger status-filter" data-status="REJECTED" data-filter="rejected">
+                            <i class="fas fa-times-circle me-2"></i>Rejected
+                        </button>
+                    </div>
+                    <hr>
+                    <div class="d-grid">
+                        <button class="btn btn-primary" id="newTransactionBtn">
+                            <i class="fas fa-plus me-2"></i>New Transaction
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-body p-0">
+                    <ul class="nav nav-pills p-3 border-bottom" id="transactionTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="received-tab" data-bs-toggle="pill" data-bs-target="#received" type="button" role="tab">
+                                <i class="fas fa-inbox me-2"></i>Received Requests
+                                <span class="badge bg-primary rounded-pill ms-1" id="receivedCount">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="sent-tab" data-bs-toggle="pill" data-bs-target="#sent" type="button" role="tab">
+                                <i class="fas fa-paper-plane me-2"></i>Sent Requests
+                                <span class="badge bg-secondary rounded-pill ms-1" id="sentCount">0</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content p-3" id="transactionTabsContent">
+                        <!-- Received Requests Tab -->
+                        <div class="tab-pane fade show active" id="received" role="tabpanel" aria-labelledby="received-tab">
+                            <div id="receivedTransactions">
+                                <!-- Transactions will be loaded here -->
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <h5>No received requests</h5>
+                                    <p class="text-muted">You don't have any transaction requests yet.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sent Requests Tab -->
+                        <div class="tab-pane fade" id="sent" role="tabpanel" aria-labelledby="sent-tab">
+                            <div id="sentTransactions">
+                                <!-- Sent transactions will be loaded here -->
+                                <div class="empty-state">
+                                    <i class="fas fa-paper-plane fa-3x mb-3"></i>
+                                    <h5>No sent requests</h5>
+                                    <p class="text-muted">You haven't sent any transaction requests yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Detail Modal -->
+<div class="modal fade" id="transactionDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionDetailTitle">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="transactionDetailBody">
+                <!-- Transaction details will be loaded here -->
+            </div>
+            <div class="modal-footer" id="transactionDetailFooter">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- WebSocket libraries loaded below -->
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load transactions when page loads
+        if (typeof loadTransactions === 'function') {
+            loadTransactions();
+        }
+
+        // Setup event listeners
+        document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+        // Filter buttons
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                filterTransactions(filter);
+
+                // Update active state
+                document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+    // Load user info
+    loadUserInfo();
+});
+
+function loadUserInfo() {
+    try {
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+
+
+        // Redirect to login if not authenticated
+        if (!userId || !token) {
+            console.log('User not authenticated, redirecting to login');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // Create user object from localStorage
+        const user = {
+            id: userId,
+            name: username || 'User',
+            email: '', // Not stored in localStorage
+            role: role || 'USER'
+        };
+
+        console.log('Created user object:', user);
+
+        // Store user in window for TransactionManager
+        if (!window.currentUser) {
+            window.currentUser = {
+                id: userId,
+                userId: userId,
+                name: username,
+                role: role
+            };
+            console.log('Set window.currentUser:', window.currentUser);
+        }
+
+        // Update UI if elements exist
+        const userDropdown = document.getElementById('userDropdown');
+        const userAvatar = document.getElementById('userAvatar');
+
+        if (userDropdown) {
+            userDropdown.textContent = username || 'User';
+        }
+
+        if (userAvatar) {
+            userAvatar.src = 'https://ui-avatars.com/api/?name=' +
+                encodeURIComponent(username || 'U') +
+                '&background=random';
+        }
+
+    } catch (error) {
+        console.error('Error in loadUserInfo:', error);
+    }
+}
+
+function handleLogout() {
+    // Clear all user-related data from localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('role');
+    localStorage.clear(); // Clear everything to be safe
+    window.location.href = '/login.html';
+}
+</script>
+
+<!-- Load WebSocket Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js" onload="console.log('SockJS loaded')"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" onload="console.log('Stomp loaded')"></script>
+
+<!-- Load transactions.js and initialize -->
+<script src="/js/transactions.js"></script>
+<script>
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Function to check if WebSocket libraries are loaded
+        function areWebSocketLibrariesLoaded() {
+            try {
+                return typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined';
+            } catch (e) {
+                console.error('Error checking WebSocket libraries:', e);
+                return false;
+            }
+        }
+
+        // Wait for WebSocket libraries to load with retry
+        async function waitForWebSocketLibraries(maxAttempts = 10, delay = 100) {
+            for (let i = 0; i < maxAttempts; i++) {
+                if (areWebSocketLibrariesLoaded()) {
+                    console.log('WebSocket libraries loaded successfully');
+                    window.webSocketLibrariesLoaded = true;
+                    return true;
+                }
+                console.log(`Waiting for WebSocket libraries... attempt ${i + 1}/${maxAttempts}`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+            console.error('Failed to load WebSocket libraries after', maxAttempts, 'attempts');
+            return false;
+        }
+
+        // Main initialization function
+        async function initializeApp() {
+            try {
+                console.log('Starting application initialization...');
+
+                // Wait for WebSocket libraries to load
+                console.log('Checking WebSocket libraries...');
+                const librariesLoaded = await waitForWebSocketLibraries();
+                if (!librariesLoaded) {
+                    throw new Error('WebSocket libraries failed to load. Please check your internet connection and refresh the page.');
+                }
+                console.log('WebSocket libraries verified');
+
+                // Check if TransactionManager is available
+                if (typeof TransactionManager === 'undefined') {
+                    console.error('TransactionManager is not defined');
+                    throw new Error('Failed to load application components. Please try refreshing the page.');
+                }
+
+                console.log('Initializing TransactionManager...');
+                // Initialize TransactionManager
+                window.transactionManager = new TransactionManager();
+                console.log('TransactionManager initialized successfully');
+
+                // Set up event listeners
+                if (typeof setupTransactionEventListeners === 'function') {
+                    console.log('Setting up event listeners...');
+                    setupTransactionEventListeners(window.transactionManager);
+                    console.log('Event listeners set up successfully');
+                } else {
+                    console.warn('setupTransactionEventListeners function not found');
+                }
+
+            } catch (error) {
+                console.error('Initialization error:', error);
+
+                // Show error to user
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger m-3';
+                errorDiv.style.position = 'fixed';
+                errorDiv.style.top = '1rem';
+                errorDiv.style.left = '50%';
+                errorDiv.style.transform = 'translateX(-50%)';
+                errorDiv.style.zIndex = '9999';
+                errorDiv.style.width = '90%';
+                errorDiv.style.maxWidth = '600px';
+                errorDiv.innerHTML = `
+                    <h5 class="alert-heading">Application Error</h5>
+                    <p>${error.message || 'Failed to initialize application.'}</p>
+                    <hr>
+                    <p class="mb-0">
+                        <button class="btn btn-sm btn-danger" onclick="window.location.reload()">
+                            <i class="fas fa-sync-alt me-1"></i> Refresh Page
+                        </button>
+                    </p>
+                `;
+                document.body.prepend(errorDiv);
+            }
+        }
+
+        // Start the application
+        initializeApp();
+    });
+</script>
+</body>
+</html>

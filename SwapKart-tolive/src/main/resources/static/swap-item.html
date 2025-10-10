@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Swap an Item | SwapKart</title>
+    <link rel="stylesheet" href="css/items.css" />
+    <style>
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          background-color: #f4f6f8;
+          margin: 0;
+        }
+
+        header {
+          background-color: #0c1b33;
+          color: white;
+          padding: 15px 30px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .logo {
+          font-size: 24px;
+          font-weight: bold;
+        }
+
+        nav a {
+          color: white;
+          margin-left: 20px;
+          text-decoration: none;
+          font-weight: 500;
+        }
+
+        nav a:hover {
+          text-decoration: underline;
+        }
+
+        main {
+          max-width: 700px;
+          margin: 40px auto;
+          padding: 30px;
+          background-color: white;
+          box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+          border-radius: 10px;
+        }
+
+        h2 {
+          text-align: center;
+          margin-bottom: 30px;
+          color: #0c1b33;
+        }
+
+        form label {
+          font-weight: 500;
+          display: block;
+          margin-top: 20px;
+        }
+
+        form input,
+        form textarea,
+        form select {
+          width: 100%;
+          padding: 10px;
+          margin-top: 5px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 16px;
+        }
+
+        form textarea {
+          resize: vertical;
+          height: 100px;
+        }
+
+        .submit-btn {
+          margin-top: 30px;
+          background-color: #2979ff;
+          color: white;
+          padding: 12px 20px;
+          font-size: 16px;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          width: 100%;
+        }
+
+        .submit-btn:hover {
+          background-color: #005ae0;
+        }
+
+        footer {
+          text-align: center;
+          background-color: #0c1b33;
+          color: white;
+          padding: 15px;
+          margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+    <div class="logo">SwapKart</div>
+    <nav>
+        <a href="items.html">Home</a>
+        <a href="my-items.html">My Items</a>
+        <a href="profile.html">My Profile</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+</header>
+
+<!-- Main Form -->
+<main>
+    <h2>Propose a Swap</h2>
+    <form id="swapForm">
+        <label for="title">Item Title</label>
+        <input type="text" id="title" name="title" placeholder="e.g., Used Table Lamp" required />
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" placeholder="Brief description of the item" required></textarea>
+
+        <label for="yourItem">Your Item to Offer (for swap)</label>
+        <input type="text" id="yourItem" name="yourItem" placeholder="e.g., Bluetooth Speaker" required />
+
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" placeholder="e.g., Kochi, Kerala" required />
+
+        <label for="image">Upload Item Image</label>
+        <input type="file" id="image" name="image" accept="image/*" />
+
+        <button type="submit" class="submit-btn">Submit Swap Request</button>
+    </form>
+</main>
+
+<!-- Footer -->
+<footer>
+    <p>© 2025 SwapKart. All rights reserved.</p>
+</footer>
+
+<script>
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.replace = "/login.html";
+    }
+
+    document.getElementById('swapForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      alert("Swap request submitted successfully!");
+      // You can hook this with actual backend POST call
+    });
+</script>
+
+</body>
+</html>

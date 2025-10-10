@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SwapKart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            z-index: 1100;
+            min-width: 300px;
+            max-width: 90%;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            overflow: hidden;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-body {
+            padding: 1.25rem 1.5rem;
+            font-size: 1.05rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0.5rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #4facfe;
+        }
+        .recent-activity {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .quick-actions {
+            margin: 2rem 0;
+        }
+        .quick-actions .btn {
+            margin: 0.5rem;
+            min-width: 150px;
+        }
+        .welcome-message {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .username {
+            font-weight: bold;
+            color: #4facfe;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">SwapKart</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/items">Browse Items</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/add-item">Add Item</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/my-items">My Items</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span class="text-light me-3" id="userGreeting">Welcome, User</span>
+                    <button class="btn btn-outline-light" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header text-center">
+            <h1>Welcome Back, <span id="username" class="username">User</span>!</h1>
+            <p class="lead">Here's what's happening with your account today</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-box-open"></i>
+                    <h3 id="itemsCount">0</h3>
+                    <p class="text-muted">Items Listed</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h3 id="tradesCount">0</h3>
+                    <p class="text-muted">Active Trades</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-bell"></i>
+                    <h3 id="notificationsCount">0</h3>
+                    <p class="text-muted">Notifications</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions text-center">
+            <h4 class="mb-4">Quick Actions</h4>
+            <a href="/add-item" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Item
+            </a>
+            <a href="/items" class="btn btn-outline-primary">
+                <i class="fas fa-search me-2"></i>Browse Items
+            </a>
+            <a href="/my-items" class="btn btn-outline-secondary">
+                <i class="fas fa-box me-2"></i>View My Items
+            </a>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+            <h4 class="mb-4">Recent Activity</h4>
+            <div id="recentActivity" class="list-group">
+                <!-- Will be populated by JavaScript -->
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-spinner fa-spin me-2"></i> Loading recent activity...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed w-100" style="z-index: 1100; bottom: 0; pointer-events: none;">
+        <div id="toast" class="toast mx-auto mb-3" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex align-items-center bg-white rounded-3 shadow">
+                <div class="toast-body d-flex align-items-center py-3" id="toastMessage">
+                    <i class="fas fa-check-circle me-3 text-primary" style="font-size: 1.5rem;"></i>
+                    <span class="text-dark">Message will appear here</span>
+                </div>
+                <button type="button" class="btn-close me-3" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/api-utils.js"></script>
+    <script>
+        // Update UI with user info
+        document.addEventListener('DOMContentLoaded', function() {
+            const username = localStorage.getItem('username') || 'User';
+            document.getElementById('username').textContent = username;
+            document.getElementById('userGreeting').textContent = `Welcome, ${username}`;
+            
+            // Load dashboard data
+            loadDashboardData();
+        });
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                // Get the authentication token
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                // Fetch current user's items count and unread notifications count
+                const [itemsResponse, notificationsResponse] = await Promise.all([
+                    fetch('/api/items/my/count', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    fetch('/api/notifications/unread/count', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                ]);
+
+                if (!itemsResponse.ok) {
+                    throw new Error('Failed to fetch items count');
+                }
+
+                const totalItems = await itemsResponse.json();
+                let unreadCount = 0;
+
+                if (notificationsResponse.ok) {
+                    const data = await notificationsResponse.json();
+                    unreadCount = data.count || 0;
+                }
+
+                // Update the items count
+                document.getElementById('itemsCount').textContent = totalItems;
+                document.getElementById('notificationsCount').textContent = unreadCount;
+
+                // For now, keep trades count as static
+                document.getElementById('tradesCount').textContent = '0';
+
+                // Update recent activity
+                const recentActivity = [
+                    { type: 'info', text: `You have ${totalItems} listed items`, time: 'Just now' }
+                ];
+
+                // Add notification activity if there are unread notifications
+                if (unreadCount > 0) {
+                    recentActivity.unshift({
+                        type: 'warning',
+                        text: `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`,
+                        time: 'Just now'
+                    });
+                }
+
+                // Add some sample activities if needed
+                if (totalItems === 0) {
+                    recentActivity.push(
+                        { type: 'primary', text: 'List your first item to get started!', time: '1 minute ago' }
+                    );
+                }
+
+                const activityHtml = recentActivity.map(activity => `
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <span>${activity.text}</span>
+                            <small class="text-muted">${activity.time}</small>
+                        </div>
+                    </a>
+                `).join('');
+
+                document.getElementById('recentActivity').innerHTML = activityHtml;
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showToast('Error loading dashboard data');
+            }
+        }
+
+        // Handle logout
+        function handleLogout() {
+            // Clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('role');
+            
+            // Redirect to login page
+            window.location.href = '/login.html';
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const toastEl = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            // Update the message text
+            toastMessage.querySelector('span').textContent = message;
+            
+            // Initialize the toast if not already done
+            if (!toastEl._toast) {
+                const toast = new bootstrap.Toast(toastEl, {
+                    autohide: true,
+                    delay: 3000
+                });
+                toastEl._toast = toast;
+            }
+            
+            // Show the toast
+            toastEl._toast.show();
+        }
+    </script>
+</body>
+</html>
