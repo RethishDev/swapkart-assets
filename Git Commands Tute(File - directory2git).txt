@@ -1,0 +1,70 @@
+Microsoft Windows [Version 10.0.26100.6725]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT>git clone https://github.com/RethishDev/swapkart-assets.git  
+Cloning into 'swapkart-assets'...
+remote: Enumerating objects: 3, done.
+remote: Counting objects: 100% (3/3), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (3/3), 656.14 KiB | 4.93 MiB/s, done.
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT>cd swapkart-assets
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        BuildingSwapKartlikeProj-Tut.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git add .
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   BuildingSwapKartlikeProj-Tut.md
+
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git commit -m"New file added.."
+[main 895c187] New file added..
+ 1 file changed, 103 insertions(+)
+ create mode 100644 BuildingSwapKartlikeProj-Tut.md
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git branch
+* main
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git checkout -b development
+Switched to a new branch 'development'
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git branch
+* development
+  main
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git push origin development
+info: please complete authentication in your browser...
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 22 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 1.36 KiB | 1.36 MiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+remote:
+remote: Create a pull request for 'development' on GitHub by visiting:
+remote:      https://github.com/RethishDev/swapkart-assets/pull/new/development
+remote:
+To https://github.com/RethishDev/swapkart-assets.git
+ * [new branch]      development -> development
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>git pull origin development
+From https://github.com/RethishDev/swapkart-assets
+ * branch            development -> FETCH_HEAD
+Already up to date.
+
+C:\Users\rethish.kumar\Desktop\GIT PROJECT\swapkart-assets>
