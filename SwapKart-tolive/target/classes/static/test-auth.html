@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwapKart - Authentication Test</title>
+    <link rel="stylesheet" href="/css/auth.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.danger {
+            background-color: #e74c3c;
+        }
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #27ae60;
+        }
+        .error {
+            color: #e74c3c;
+        }
+        .token-info {
+            word-break: break-all;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SwapKart Authentication Test</h1>
+
+        <div class="test-section">
+            <h2>1. Login</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password">
+            </div>
+            <button id="loginBtn">Login</button>
+            <button id="logoutBtn" class="danger" disabled>Logout</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Test Authentication</h2>
+            <p>Try these endpoints after logging in:</p>
+            <button id="testPublicBtn" class="secondary">Test Public Endpoint</button>
+            <button id="testAuthBtn" class="secondary">Test Authenticated Endpoint</button>
+            <button id="testUserBtn" class="secondary">Test User Role Endpoint</button>
+            <button id="testAdminBtn" class="secondary">Test Admin Role Endpoint</button>
+            <div id="testResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Token Information</h2>
+            <button id="showTokenBtn">Show Token</button>
+            <button id="checkTokenBtn">Check Token Validity</button>
+            <div id="tokenInfo" class="result token-info"></div>
+        </div>
+    </div>
+
+    <!-- Include required scripts -->
+    <script src="/js/token-utils.js"></script>
+    <script src="/js/api-service.js"></script>
+    <script src="/js/services/user-service.js"></script>
+
+    <script>
+        // DOM Elements
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginResult = document.getElementById('loginResult');
+        const testPublicBtn = document.getElementById('testPublicBtn');
+        const testAuthBtn = document.getElementById('testAuthBtn');
+        const testUserBtn = document.getElementById('testUserBtn');
+        const testAdminBtn = document.getElementById('testAdminBtn');
+        const testResult = document.getElementById('testResult');
+        const showTokenBtn = document.getElementById('showTokenBtn');
+        const checkTokenBtn = document.getElementById('checkTokenBtn');
+        const tokenInfo = document.getElementById('tokenInfo');
+
+        // Test user credentials (for demo purposes)
+        const testUsers = {
+            admin: { email: 'admin@swapkart.com', password: 'admin123' },
+            user: { email: 'user@swapkart.com', password: 'user123' }
+        };
+
+        // Auto-fill test user credentials
+        document.getElementById('email').addEventListener('focus', function() {
+            if (!this.value) {
+                this.value = testUsers.user.email;
+                passwordInput.value = testUsers.user.password;
+            }
+        });
+
+        // Login button click handler
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showResult(loginResult, 'Please enter both email and password', false);
+                return;
+            }
+
+            try {
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Logging in...';
+
+                const response = await UserService.login(email, password);
+                showResult(loginResult, 'Login successful! ' + JSON.stringify(response, null, 2), true);
+                updateUI(true);
+            } catch (error) {
+                showResult(loginResult, 'Login failed: ' + (error.message || 'Unknown error'), false);
+                console.error('Login error:', error);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        // Logout button click handler
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                logoutBtn.disabled = true;
+                await UserService.logout();
+                showResult(loginResult, 'Logout successful!', true);
+                updateUI(false);
+            } catch (error) {
+                showResult(loginResult, 'Logout failed: ' + (error.message || 'Unknown error'), false);
+                console.error('Logout error:', error);
+                // Still update UI even if the server logout fails
+                updateUI(false);
+            } finally {
+                logoutBtn.disabled = false;
+            }
+        });
+
+        // Test public endpoint
+        testPublicBtn.addEventListener('click', async () => {
+            await testEndpoint('/test/public', 'Public endpoint');
+        });
+
+        // Test authenticated endpoint
+        testAuthBtn.addEventListener('click', async () => {
+            await testEndpoint('/test/authenticated', 'Authenticated endpoint');
+        });
+
+        // Test user role endpoint
+        testUserBtn.addEventListener('click', async () => {
+            await testEndpoint('/test/user', 'User role endpoint');
+        });
+
+        // Test admin role endpoint
+        testAdminBtn.addEventListener('click', async () => {
+            await testEndpoint('/test/admin', 'Admin role endpoint');
+        });
+
+        // Show token info
+        showTokenBtn.addEventListener('click', () => {
+            const token = TokenUtils.getToken();
+            if (token) {
+                const payload = TokenUtils.decodeToken(token);
+                tokenInfo.textContent = JSON.stringify({
+                    token: token.substring(0, 30) + '...',
+                    payload: payload,
+                    isExpired: TokenUtils.isTokenExpired(),
+                    expiresIn: TokenUtils.getTokenExpiration() ?
+                        new Date(TokenUtils.getTokenExpiration()).toLocaleString() : 'N/A',
+                    userRoles: TokenUtils.getUserRoles(),
+                    username: TokenUtils.getUsername()
+                }, null, 2);
+            } else {
+                tokenInfo.textContent = 'No token found. Please login first.';
+            }
+        });
+
+        // Check token validity
+        checkTokenBtn.addEventListener('click', () => {
+            const isValid = TokenUtils.hasValidToken();
+            tokenInfo.textContent = isValid ?
+                '✅ Token is valid and not expired' :
+                '❌ Token is invalid or expired';
+        });
+
+        // Helper function to test API endpoints
+        async function testEndpoint(endpoint, description) {
+            try {
+                const response = await ApiService.get(endpoint);
+                showResult(testResult, `${description} response: ${JSON.stringify(response, null, 2)}`, true);
+            } catch (error) {
+                showResult(testResult,
+                    `${description} failed (${error.status || 'N/A'}): ${error.message}`,
+                    false
+                );
+                console.error(`Error testing ${endpoint}:`, error);
+            }
+        }
+
+        // Helper function to show results
+        function showResult(element, message, isSuccess) {
+            element.textContent = message;
+            element.className = 'result ' + (isSuccess ? 'success' : 'error');
+        }
+
+        // Update UI based on authentication state
+        function updateUI(isAuthenticated) {
+            loginBtn.disabled = isAuthenticated;
+            logoutBtn.disabled = !isAuthenticated;
+            emailInput.disabled = isAuthenticated;
+            passwordInput.disabled = isAuthenticated;
+
+            // Enable/disable test buttons based on authentication
+            const testButtons = [testAuthBtn, testUserBtn, testAdminBtn];
+            testButtons.forEach(btn => {
+                btn.disabled = !isAuthenticated;
+            });
+
+            // Clear results
+            if (!isAuthenticated) {
+                loginResult.textContent = '';
+                testResult.textContent = '';
+                tokenInfo.textContent = '';
+            }
+        }
+
+        // Initialize UI
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI(TokenUtils.hasValidToken());
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+/* register.css */
+body {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.4s ease;
+}
+
+/* Glassmorphism Card */
+.auth-form {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 420px;
+    animation: fadeIn 0.8s ease;
+}
+
+.form-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #222;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 1.2rem;
+}
+
+.form-group i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 1.1rem;
+    transition: color 0.3s;
+}
+
+.auth-form input,
+.auth-form select {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.2rem; /* slightly smaller */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    background: #fafbfc;
+    box-sizing: border-box; /* ✅ fix overflow */
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+    border-color: #6a11cb;
+    box-shadow: 0 0 8px rgba(106, 17, 203, 0.3);
+    background: #fff;
+}
+
+.form-group input:focus ~ i {
+    color: #6a11cb;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+    min-height: 1.1em;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+}
+
+.form-check input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* Modern Button */
+.btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(37,117,252,0.3);
+}
+
+.btn:hover {
+    background: linear-gradient(135deg, #2575fc, #6a11cb);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(106,17,203,0.4);
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 1.2rem;
+    font-size: 1rem;
+    color: #444;
+}
+
+.login-link a {
+    color: #2575fc;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.login-link a:hover {
+    color: #6a11cb;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-size: 1.6rem;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.3s, color 0.3s;
+}
+
+.theme-toggle:hover {
+    color: #ffdd57;
+    transform: rotate(20deg);
+}
+
+/* Dark Mode */
+body.dark {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+}
+
+body.dark .auth-form {
+    background: rgba(30, 30, 30, 0.85);
+    color: #f4f6f8;
+}
+
+body.dark .auth-form input,
+body.dark .auth-form select {
+    background: rgba(40, 40, 40, 0.6);
+    color: #f4f6f8;
+    border-color: #444;
+}
+
+body.dark .form-title {
+    color: #f4f6f8;
+}
+
+body.dark .btn {
+    background: linear-gradient(135deg, #2575fc, #6a11cb);
+}
+
+body.dark .btn:hover {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,415 @@
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f8f9fa;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Toast Notifications */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1100;
+  min-width: 300px;
+}
+
+.toast {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  display: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  display: block;
+}
+
+.toast-header {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.toast-body {
+  padding: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Toast Variants */
+.toast-success {
+  border-left: 4px solid #28a745;
+}
+
+.toast-error {
+  border-left: 4px solid #dc3545;
+}
+
+.toast-info {
+  border-left: 4px solid #17a2b8;
+}
+
+.toast-warning {
+  border-left: 4px solid #ffc107;
+}
+
+/* Donation Request Modal */
+.modal-content {
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  color: white;
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #d1d3e2;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #bac8f3;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 74, 190, 0.2);
+}
+
+.btn-secondary {
+  background-color: #f8f9fa;
+  color: #4e73df;
+  border: 1px solid #d1d3e2;
+}
+
+.btn-secondary:hover {
+  background-color: #eaecf4;
+  border-color: #bac8f3;
+}
+
+/* Loading Spinner */
+.spinner-border {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-right: 0.5rem;
+  border-width: 0.15em;
+}
+
+/* Hide elements with d-none */
+.d-none {
+  display: none !important;
+}
+
+/* Show elements with d-block */
+.d-block {
+  display: block !important;
+}
+
+.navbar {
+  background: #007bff;
+  color: white;
+  padding: 1rem;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-links a {
+  margin-left: 20px;
+  color: white;
+  text-decoration: none;
+}
+
+.item-section {
+  padding: 2rem;
+  text-align: center;
+}
+
+.filter-bar {
+  margin-bottom: 1.5rem;
+}
+
+.filter-bar input, .filter-bar select, .filter-bar button {
+  padding: 0.5rem;
+  margin: 0.3rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.filter-bar button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.item-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.item-card {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin: 1rem;
+  padding: 1rem;
+  width: 250px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.item-card img {
+  max-width: 100%;
+  border-radius: 5px;
+}
+
+.item-card h3 {
+  margin-top: 0.5rem;
+}
+
+.item-card button {
+  background-color: green;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.item-details-section {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.item-details-card {
+  background-color: white;
+  display: flex;
+  max-width: 900px;
+  width: 100%;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.item-image img {
+  width: 300px;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-info {
+  padding: 1.5rem;
+  text-align: left;
+  flex: 1;
+}
+
+.item-info h2 {
+  margin-top: 0;
+}
+
+.item-info button {
+  background-color: #007bff;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  margin-top: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/*====================== TRANSACTION STYLES - START ======================*/
+/* Transaction Modals */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #d1d3e2;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #bac8f3;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Disabled Buttons */
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Loading Spinner */
+.spinner-border {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.5rem;
+    border-width: 0.15em;
+    display: inline-block;
+}
+
+/* Tooltip for disabled buttons */
+[data-bs-toggle="tooltip"] {
+    cursor: not-allowed;
+}
+/*====================== TRANSACTION STYLES - END ======================*/
+
+
+/*====================== SWAP STYLES - START ======================*/
+/* Swap Modal Styles */
+.swap-items-list {
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 #f8f9fa;
+}
+
+.swap-items-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.swap-items-list::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+.swap-items-list::-webkit-scrollbar-thumb {
+    background-color: #dee2e6;
+    border-radius: 3px;
+}
+
+.swap-item-radio:checked + label {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Modal Image Placeholder */
+.img-placeholder {
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6c757d;
+}
+
+/* Loading State */
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.loading:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    z-index: 1;
+}
+/*====================== SWAP STYLES - END ======================*/

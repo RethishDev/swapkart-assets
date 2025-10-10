@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sell Item | SwapKart</title>
+    <link rel="stylesheet" href="css/sell-item.css">
+
+    <!-- Prevent caching of the page -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+</head>
+<body>
+<header>
+    <div class="logo">SwapKart</div>
+    <nav>
+        <a href="items.html">Browse</a>
+        <a href="sell-item.html" class="active">Sell</a>
+        <a href="profile.html">My Profile</a>
+        <a href="login.html">Logout</a>
+    </nav>
+</header>
+
+<main class="sell-container">
+    <h2>List Your Product</h2>
+    <form id="sellForm" class="sell-form">
+        <label>Item Name:</label>
+        <input type="text" name="title" id="title" required placeholder="e.g. Bluetooth Speaker">
+
+        <label>Description:</label>
+        <textarea name="description" id="description" required placeholder="Write something about the item..."></textarea>
+
+        <label>Price (₹):</label>
+        <input type="number" name="price" id="price" required placeholder="e.g. 1200">
+
+        <label>Category:</label>
+        <select name="category" id="category" required>
+            <option value="">Select a category</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Books">Books</option>
+            <option value="Fashion">Fashion</option>
+            <option value="Home">Home</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <label>Upload Image:</label>
+        <input type="file" name="image" id="image" accept="image/*" required>
+
+        <button type="submit" class="btn">Post Item</button>
+    </form>
+</main>
+
+<footer>
+    <p>© 2025 SwapKart. All rights reserved.</p>
+</footer>
+
+<script src="js/sell-item.js"></script>
+</body>
+</html>

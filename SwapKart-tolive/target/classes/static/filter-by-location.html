@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Find Items by Location | SwapKart</title>
+    <link rel="stylesheet" href="css/location-filter.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">SwapKart</div>
+    <nav>
+        <a href="items.html">Browse</a>
+        <a href="sell-item.html">Sell</a>
+        <a href="my-items.html">My Listings</a>
+        <a href="profile.html">Profile</a>
+        <a href="logout.html">Logout</a>
+    </nav>
+</header>
+
+<main class="location-container">
+    <h2>Filter Items by Location</h2>
+
+    <div class="filter-bar">
+        <input type="text" id="cityInput" placeholder="Enter city or location..." />
+        <button onclick="filterItems()">Search</button>
+    </div>
+
+    <div id="itemResults" class="item-grid">
+        <!-- Filtered items will appear here -->
+    </div>
+</main>
+
+<footer>
+    <p>© 2025 SwapKart. All rights reserved.</p>
+</footer>
+
+<script src="js/location-filter.js"></script>
+</body>
+</html>

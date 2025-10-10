@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Messages | SwapKart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+    <style>
+        /* Conversation list styles */
+        .conversation-list {
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .conversation-item {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: background-color 0.2s;
+        }
+        
+        .conversation-item:hover, .conversation-item.active {
+            background-color: rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+        }
+        
+        .conversation-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        
+        .conversation-preview {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        
+        /* Message container styles */
+        .message-container {
+            height: 100%;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        /* Message bubbles */
+        .message {
+            max-width: 75%;
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            position: relative;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-sent {
+            margin-left: auto;
+            background-color: #007bff;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .message-received {
+            margin-right: auto;
+            background-color: #f1f1f1;
+            color: #212529;
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .message.unread {
+            border-left: 3px solid #0d6efd;
+        }
+        
+        .message-time {
+            font-size: 0.6875rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+            text-align: right;
+        }
+        
+        .message-sent .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .message-received .message-time {
+            color: #6c757d;
+        }
+        
+        /* Typing indicator */
+        #typingIndicator {
+            min-height: 24px;
+            font-size: 0.875rem;
+            color: #6c757d;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Message input area */
+        #messageInput {
+            border-radius: 1.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #dee2e6;
+            resize: none;
+            min-height: 46px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        
+        #messageInput:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+            border-color: #86b7fe;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">SwapKart Admin</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="admin-dashboard.html">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="admin-users.html">
+                                <i class="fas fa-users me-2"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="admin-items.html">
+                                <i class="fas fa-box me-2"></i> Items
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="admin-transactions.html">
+                                <i class="fas fa-exchange-alt me-2"></i> Trades
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="admin-messages.html">
+                                <i class="fas fa-comments me-2"></i> Messages
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link text-danger" href="#" onclick="handleLogout(); return false;">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Messages</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshBtn">
+                                <i class="fas fa-sync-alt me-1"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Conversations List -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Conversations</h5>
+                                <div class="input-group input-group-sm" style="width: 60%;">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="searchConversations" placeholder="Search...">
+                                </div>
+                            </div>
+                            <div class="list-group list-group-flush conversation-list" id="conversationsList">
+                                <!-- Conversations will be loaded here -->
+                                <div class="text-center p-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Messages Area -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center" id="conversationHeader">
+                                <h5 class="mb-0">Select a conversation</h5>
+                            </div>
+                            <div class="card-body p-0 d-flex flex-column" style="height: 70vh;">
+                                <!-- Messages container with scroll -->
+                                <div class="message-container flex-grow-1 overflow-auto p-3" id="messageContainer">
+                                    <div class="text-center p-5 text-muted" id="noMessagesPlaceholder">
+                                        <i class="fas fa-comments fa-3x mb-3"></i>
+                                        <p>Select a conversation to view messages</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Typing indicator -->
+                                <div id="typingIndicator" class="px-3 py-2 text-muted small" style="display: none;">
+                                    <i class="fas fa-circle-notch fa-spin me-2"></i>
+                                    <span></span>
+                                </div>
+                                <div class="card-footer bg-white border-top p-3">
+                                    <form id="messageForm" class="d-flex align-items-center">
+                                        <input type="hidden" id="currentChatId">
+                                        <div class="input-group">
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="messageInput" 
+                                                   placeholder="Type a message..." 
+                                                   autocomplete="off"
+                                                   aria-label="Message input">
+                                            <button type="button" class="btn btn-outline-secondary" id="attachFileBtn">
+                                                <i class="fas fa-paperclip"></i>
+                                            </button>
+                                            <button type="submit" class="btn btn-primary" id="sendMessageBtn">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <div class="form-text small text-muted mt-1">
+                                        Press Enter to send, Shift+Enter for new line
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.4.6/bundles/stomp.umd.min.js"></script>
+    <script src="js/admin-messages.js" type="module"></script>
+</body>
+</html>

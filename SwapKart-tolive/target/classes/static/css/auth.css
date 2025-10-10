@@ -1,0 +1,234 @@
+/* Auth Page Layout */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f5f7fa;
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+/* Typography */
+.auth-card h1 {
+    color: #2d3748;
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Form Elements */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.form-control {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+    color: #2d3748;
+}
+
+/* Specific style for email input in auth forms */
+.auth-form input[type="email"] {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+    color: #2d3748;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+auth-form input[type="email"]:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    background-color: #fff;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+
+/* Password Input Group */
+.password-input {
+    position: relative;
+    display: flex;
+}
+
+.password-input .form-control {
+    padding-right: 2.5rem;
+    width: 100%;
+}
+
+.btn-icon {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.25rem;
+    color: #718096;
+    transition: color 0.2s;
+}
+
+.btn-icon:hover {
+    color: #2d3748;
+}
+
+/* Form Checkbox */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.form-check-input {
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.form-check-label {
+    color: #4a5568;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary {
+    background-color: #4299e1;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3182ce;
+}
+
+.btn-primary:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 0.75rem;
+}
+
+/* Spinner */
+.spinner-border {
+    display: none;
+    margin-left: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* Error Message */
+.error-message {
+    background-color: #fff5f5;
+    color: #e53e3e;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    border-left: 4px solid #e53e3e;
+}
+
+/* Auth Footer */
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: #718096;
+}
+
+.auth-footer a {
+    color: #4299e1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.auth-footer p {
+    margin: 0.5rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.5rem;
+    }
+
+    .auth-card h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-card {
+    animation: fadeIn 0.3s ease-out;
+}

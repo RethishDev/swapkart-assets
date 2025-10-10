@@ -1,0 +1,108 @@
+/* Rating System Styles */
+
+/* Star Rating */
+.rating-stars {
+    color: #ffc107; /* Yellow color for stars */
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+}
+
+.rating-stars .fa-star,
+.rating-stars .fa-star-o {
+    padding: 0 2px;
+    transition: all 0.2s ease-in-out;
+}
+
+.rating-stars .fa-star-o {
+    color: #ddd;
+}
+
+.rating-stars .fa-star.highlight,
+.rating-stars .fa-star.highlight {
+    color: #ffc107;
+    transform: scale(1.2);
+}
+
+/* Rating Display */
+.rating-display {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.average-rating {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.rating-count {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+/* Rating Items */
+.rating-item {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.rating-item:not(:last-child) {
+    margin-bottom: 1rem;
+}
+
+.rating-item .user-avatar {
+    color: #6c757d;
+}
+
+.rating-item .star-rating {
+    color: #ffc107;
+    font-size: 0.9rem;
+}
+
+/* Rating Form */
+#ratingForm .form-control:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+/* Modal Specific Styles */
+#ratingModal .modal-header {
+    border-bottom: 1px solid #eee;
+}
+
+#ratingModal .modal-footer {
+    border-top: 1px solid #eee;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .rating-stars {
+        font-size: 1.25rem;
+    }
+
+    .average-rating {
+        font-size: 1.25rem;
+    }
+
+    .rating-item {
+        padding: 0.75rem;
+    }
+}
+
+/* Animation for rating submission */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
+}
+
+.rating-submitted .fa-star {
+    animation: bounce 0.6s;
+    display: inline-block;
+}

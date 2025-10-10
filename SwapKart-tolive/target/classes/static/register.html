@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Professional Register</title>
+    <link rel="stylesheet" href="/css/register.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Style for optgroup labels */
+        optgroup {
+            background-color: #f5f5f5;
+            color: #333;
+            font-weight: bold;
+            padding: 4px 8px;
+            margin: 4px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        /* Style for options within optgroups */
+        optgroup option {
+            background-color: white;
+            color: #333;
+            padding: 4px 20px;
+            font-weight: normal;
+        }
+        
+        /* Hover effect for options */
+        optgroup option:hover {
+            background-color: #e9ecef;
+        }
+        
+        /* Style for the select element */
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<i class="fas fa-moon theme-toggle" id="themeToggle" title="Toggle Theme"></i>
+
+<form id="registerForm" class="auth-form" novalidate>
+    <h2 class="form-title">Register</h2>
+    <div id="formError" class="error-message" style="display: none; margin-bottom: 15px; text-align: center; color: #dc3545;"></div>
+
+    <div class="form-group">
+        <i class="fas fa-user"></i>
+        <input type="text" id="name" name="name" placeholder="Full Name" minlength="2" maxlength="50" required>
+        <div class="error-message" id="nameError"></div>
+    </div>
+
+    <div class="form-group">
+        <i class="fas fa-envelope"></i>
+        <input type="email" id="email" name="email" placeholder="Email Address" required>
+        <div class="error-message" id="emailError" style="display: none; margin-bottom: 15px; text-align: center; color: #dc3545;"></div>
+        <button type="button" id="sendOtpBtn" class="btn">Send OTP</button>
+    </div>
+
+    <!-- OTP Field (hidden initially) -->
+    <div class="form-group" id="otpGroup" style="display:none;">
+        <i class="fas fa-lock"></i>
+        <input type="text" id="otp" name="otp" placeholder="Enter OTP" required>
+        <div class="error-message" id="otpError" style="display:none; color:#dc3545;"></div>
+        <button type="button" id="verifyOtpBtn" class="btn">Verify OTP</button>
+    </div>
+
+
+    <div class="form-group">
+        <i class="fas fa-phone"></i>
+        <input type="tel" id="mobile" name="mobile" pattern="[6-9]{1}[0-9]{9}" maxlength="10" placeholder="Mobile Number" required>
+        <div class="error-message" id="mobileError"></div>
+    </div>
+
+    <div class="form-group">
+        <i class="fas fa-city"></i>
+        <select id="city" name="city" required>
+            <option value="" disabled selected>Select your city</option>
+            
+            <!-- Northern India -->
+            <optgroup label="Delhi NCR">
+                <option value="New Delhi">New Delhi</option>
+                <option value="Gurugram">Gurugram</option>
+                <option value="Noida">Noida</option>
+                <option value="Faridabad">Faridabad</option>
+                <option value="Ghaziabad">Ghaziabad</option>
+            </optgroup>
+
+            <!-- Maharashtra -->
+            <optgroup label="Maharashtra">
+                <option value="Mumbai">Mumbai</option>
+                <option value="Pune">Pune</option>
+                <option value="Nashik">Nashik</option>
+                <option value="Nagpur">Nagpur</option>
+                <option value="Thane">Thane</option>
+                <option value="Pimpri-Chinchwad">Pimpri-Chinchwad</option>
+            </optgroup>
+
+            <!-- Karnataka -->
+            <optgroup label="Karnataka">
+                <option value="Bangalore">Bangalore</option>
+                <option value="Mysore">Mysore</option>
+                <option value="Hubli">Hubli</option>
+                <option value="Mangalore">Mangalore</option>
+                <option value="Belgaum">Belgaum</option>
+            </optgroup>
+
+            <!-- Tamil Nadu -->
+            <optgroup label="Tamil Nadu">
+                <option value="Chennai">Chennai</option>
+                <option value="Coimbatore">Coimbatore</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Tiruchirappalli">Tiruchirappalli</option>
+                <option value="Salem">Salem</option>
+            </optgroup>
+
+            <!-- Kerala -->
+            <optgroup label="Kerala">
+                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                <option value="Kochi">Kochi</option>
+                <option value="Kozhikode">Kozhikode</option>
+                <option value="Kollam">Kollam</option>
+                <option value="Thrissur">Thrissur</option>
+                <option value="Kottayam">Kottayam</option>
+                <option value="Alappuzha">Alappuzha</option>
+                <option value="Pathanamthitta">Pathanamthitta</option>
+            </optgroup>
+
+            <!-- Telangana -->
+            <optgroup label="Telangana">
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Warangal">Warangal</option>
+                <option value="Nizamabad">Nizamabad</option>
+                <option value="Karimnagar">Karimnagar</option>
+            </optgroup>
+
+            <!-- West Bengal -->
+            <optgroup label="West Bengal">
+                <option value="Kolkata">Kolkata</option>
+                <option value="Howrah">Howrah</option>
+                <option value="Durgapur">Durgapur</option>
+                <option value="Asansol">Asansol</option>
+            </optgroup>
+
+            <!-- Gujarat -->
+            <optgroup label="Gujarat">
+                <option value="Ahmedabad">Ahmedabad</option>
+                <option value="Surat">Surat</option>
+                <option value="Vadodara">Vadodara</option>
+                <option value="Rajkot">Rajkot</option>
+            </optgroup>
+
+            <!-- Rajasthan -->
+            <optgroup label="Rajasthan">
+                <option value="Jaipur">Jaipur</option>
+                <option value="Jodhpur">Jodhpur</option>
+                <option value="Udaipur">Udaipur</option>
+                <option value="Kota">Kota</option>
+            </optgroup>
+
+            <!-- Uttar Pradesh -->
+            <optgroup label="Uttar Pradesh">
+                <option value="Lucknow">Lucknow</option>
+                <option value="Kanpur">Kanpur</option>
+                <option value="Varanasi">Varanasi</option>
+                <option value="Agra">Agra</option>
+                <option value="Allahabad">Allahabad (Prayagraj)</option>
+            </optgroup>
+
+            <!-- Punjab -->
+            <optgroup label="Punjab">
+                <option value="Chandigarh">Chandigarh</option>
+                <option value="Ludhiana">Ludhiana</option>
+                <option value="Amritsar">Amritsar</option>
+                <option value="Jalandhar">Jalandhar</option>
+            </optgroup>
+
+            <!-- Haryana -->
+            <optgroup label="Haryana">
+                <option value="Gurgaon">Gurgaon</option>
+                <option value="Faridabad">Faridabad</option>
+                <option value="Panipat">Panipat</option>
+                <option value="Ambala">Ambala</option>
+            </optgroup>
+
+            <!-- Madhya Pradesh -->
+            <optgroup label="Madhya Pradesh">
+                <option value="Bhopal">Bhopal</option>
+                <option value="Indore">Indore</option>
+                <option value="Jabalpur">Jabalpur</option>
+                <option value="Gwalior">Gwalior</option>
+            </optgroup>
+
+            <!-- Bihar -->
+            <optgroup label="Bihar">
+                <option value="Patna">Patna</option>
+                <option value="Gaya">Gaya</option>
+                <option value="Bhagalpur">Bhagalpur</option>
+                <option value="Muzaffarpur">Muzaffarpur</option>
+            </optgroup>
+
+            <!-- Andhra Pradesh -->
+            <optgroup label="Andhra Pradesh">
+                <option value="Visakhapatnam">Visakhapatnam</option>
+                <option value="Vijayawada">Vijayawada</option>
+                <option value="Guntur">Guntur</option>
+                <option value="Nellore">Nellore</option>
+            </optgroup>
+
+            <!-- Odisha -->
+            <optgroup label="Odisha">
+                <option value="Bhubaneswar">Bhubaneswar</option>
+                <option value="Cuttack">Cuttack</option>
+                <option value="Rourkela">Rourkela</option>
+                <option value="Sambalpur">Sambalpur</option>
+            </optgroup>
+        </select>
+        <div class="error-message" id="cityError"></div>
+    </div>
+
+    <div class="form-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="password" name="password" placeholder="Password (min 6 characters)" minlength="6" required>
+        <div class="error-message" id="passwordError"></div>
+        <button type="button" id="togglePassword" class="btn-icon"
+                aria-label="Toggle password visibility">
+            👁️
+        </button>
+    </div>
+
+    <div class="form-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+        <div class="error-message" id="confirmPasswordError"></div>
+        <button type="button" id="toggleConfirmPassword" class="btn-icon"
+                aria-label="Toggle password visibility">
+            👁️
+        </button>
+    </div>
+
+    <button type="submit" class="btn">Register</button>
+    <p class="login-link">Already have an account? <a href="login.html">Login here</a></p>
+</form>
+
+<script>
+    // Password toggle
+    document.getElementById('togglePassword').addEventListener('change', function () {
+      const password = document.getElementById('password');
+      const confirmPassword = document.getElementById('confirmPassword');
+      password.type = this.checked ? 'text' : 'password';
+      confirmPassword.type = this.checked ? 'text' : 'password';
+    });
+
+    // Theme toggle
+    const toggle = document.getElementById('themeToggle');
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      toggle.classList.toggle('fa-moon');
+      toggle.classList.toggle('fa-sun');
+    });
+
+    // Form validation
+    const form = document.getElementById('registerForm');
+    form.addEventListener('submit', function(event) {
+        const name = document.getElementById('name');
+        const email = document.getElementById('email');
+        const mobile = document.getElementById('mobile');
+        const city = document.getElementById('city');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        const nameError = document.getElementById('nameError');
+        const emailError = document.getElementById('emailError');
+        const mobileError = document.getElementById('mobileError');
+        const cityError = document.getElementById('cityError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+        let isValid = true;
+
+        if (name.value.trim() === '') {
+            nameError.textContent = 'Please enter your name';
+            isValid = false;
+        } else {
+            nameError.textContent = '';
+        }
+
+        if (email.value.trim() === '') {
+            emailError.textContent = 'Please enter your email';
+            isValid = false;
+        } else {
+            emailError.textContent = '';
+        }
+
+        if (mobile.value.trim() === '') {
+            mobileError.textContent = 'Please enter your mobile number';
+            isValid = false;
+        } else {
+            mobileError.textContent = '';
+        }
+
+        if (city.value === '') {
+            cityError.textContent = 'Please select your city';
+            isValid = false;
+        } else {
+            cityError.textContent = '';
+        }
+
+        if (password.value.trim() === '') {
+            passwordError.textContent = 'Please enter your password';
+            isValid = false;
+        } else if (password.value.length < 6) {
+            passwordError.textContent = 'Password should be at least 6 characters';
+            isValid = false;
+        } else {
+            passwordError.textContent = '';
+        }
+
+        if (confirmPassword.value.trim() === '') {
+            confirmPasswordError.textContent = 'Please confirm your password';
+            isValid = false;
+        } else if (confirmPassword.value !== password.value) {
+            confirmPasswordError.textContent = 'Passwords do not match';
+            isValid = false;
+        } else {
+            confirmPasswordError.textContent = '';
+        }
+
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+
+    // Show/Hide password toggle
+    document.getElementById('togglePassword').addEventListener('click', function() {
+      const passwordField = document.getElementById('password');
+      const isPassword = passwordField.type === 'password';
+      passwordField.type = isPassword ? 'text' : 'password';
+
+      // Toggle button text/icon (example: 👁 / 🚫)
+      this.textContent = isPassword ? '🙈' : '👁';
+    });
+
+    // Show/Hide password toggle
+    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+      const passwordField = document.getElementById('confirmPassword');
+      const isPassword = passwordField.type === 'password';
+      passwordField.type = isPassword ? 'text' : 'password';
+
+      // Toggle button text/icon (example: 👁 / 🚫)
+      this.textContent = isPassword ? '🙈' : '👁';
+    });
+</script>
+<script src="/js/register.js"></script>
+</body>
+</html>

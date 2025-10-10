@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings | SwapKart Admin</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2>SwapKart Admin</h2>
+        <nav>
+            <a href="admin-dashboard.html">Dashboard</a>
+            <a href="admin-users.html">Manage Users</a>
+            <a href="admin-items.html">Manage Items</a>
+            <a href="admin-transactions.html">Transactions</a>
+            <a href="logout.html" class="logout">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard">
+        <header>
+            <h1>Platform Settings</h1>
+            <p>Manage admin and system preferences</p>
+        </header>
+
+        <section class="settings-section">
+            <form class="settings-form">
+                <div class="form-group">
+                    <label for="platformName">Platform Name:</label>
+                    <input type="text" id="platformName" value="SwapKart">
+                </div>
+
+                <div class="form-group">
+                    <label for="supportEmail">Support Email:</label>
+                    <input type="email" id="supportEmail" value="support@swapkart.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="defaultCurrency">Default Currency:</label>
+                    <select id="defaultCurrency">
+                        <option selected>INR (₹)</option>
+                        <option>USD ($)</option>
+                        <option>EUR (€)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maintenanceMode">Maintenance Mode:</label>
+                    <select id="maintenanceMode">
+                        <option value="off" selected>Off</option>
+                        <option value="on">On</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="itemsPerPage">Items per page:</label>
+                    <input type="number" id="itemsPerPage" value="10" min="1">
+                </div>
+
+                <button type="submit" class="btn-save">Save Settings</button>
+            </form>
+        </section>
+    </main>
+</div>
+</body>
+</html>
