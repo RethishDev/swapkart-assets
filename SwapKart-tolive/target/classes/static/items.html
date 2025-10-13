@@ -433,6 +433,84 @@
             background-size: 200% 200%;
             animation: gradientBG 15s ease infinite;
         }
+
+        /* Disabled item styles */
+        .item-disabled {
+            position: relative;
+            opacity: 0.8;
+            filter: grayscale(30%);
+        }
+
+        .item-disabled .unavailable-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-disabled .unavailable-badge i {
+            margin-right: 3px;
+            font-size: 10px;
+        }
+
+        .item-disabled:hover {
+            transform: none !important;
+            cursor: not-allowed;
+        }
+
+        .item-disabled .btn:disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+        }
+
+        .img-disabled {
+            filter: grayscale(50%);
+            opacity: 0.8;
+        }
+
+        /* Disable hover effects on disabled items */
+        .item-disabled:hover .item-img {
+            transform: none;
+        }
+
+        /* Ensure text in disabled items is slightly faded */
+        .item-disabled h5,
+        .item-disabled .text-muted,
+        .item-disabled .fw-bold {
+            opacity: 0.8;
+        }
+
+        /* Pulsing animation for the unavailable badge */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4),
+                           0 0 0 4px rgba(220, 53, 69, 0.2),
+                           0 2px 8px rgba(0, 0, 0, 0.3);
+            }
+            70% {
+                box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.3),
+                           0 0 0 8px rgba(220, 53, 69, 0.1),
+                           0 2px 12px rgba(0, 0, 0, 0.4);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4),
+                           0 0 0 4px rgba(220, 53, 69, 0.2),
+                           0 2px 8px rgba(0, 0, 0, 0.3);
+            }
+        }
+
     </style>
 </head>
 <body>

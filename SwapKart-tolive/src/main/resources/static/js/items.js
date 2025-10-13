@@ -205,15 +205,23 @@
             return;
         }
 
-        const itemsHTML = itemsArray.map(item => `
-            <div class="item-card">
+        const itemsHTML = itemsArray.map(item => {
+            // Check if item is disabled
+            const isDisabled = item.active === 'false' || item.active === false || item.active === 'f';
+            
+            return `
+            <div class="item-card ${isDisabled ? 'item-disabled' : ''}" data-id="${item.id}">
                 <div class="position-relative">
-                    <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjUwJSIgeT0iNjUlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwMHgxNTA8L3RleHQ+Cjwvc3ZnPg='}"
-                         class="item-img"
+                    ${isDisabled ? `
+                    <div class="unavailable-badge">
+                        <i class="fas fa-ban me-1"></i> Unavailable
+                    </div>` : ''}
+                    <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjUwJSIgeT0iNjUlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwMHgxNTA8L3RleHQ+Cjwvc3ZnPg=='}"
+                         class="item-img ${isDisabled ? 'img-disabled' : ''}"
                          alt="${item.title}"
                          onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjUwJSIgeT0iNjUlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwMHgxNTA8L3RleHQ+PC9zdmc+';"
                     >
-                    <span class="item-badge ${getBadgeClass(item.type)}">
+                    <span class="item-badge ${getBadgeClass(item.type)} ${isDisabled ? 'bg-secondary' : ''}">
                         ${formatItemType(item.type)}
                     </span>
                 </div>
@@ -234,13 +242,14 @@
                               item.type === 'DONATE' ? 'Free' : 'For Swap'}
                         </span>
                     </div>
-                    <button class="btn btn-sm btn-outline-primary w-100 mt-2"
-                            onclick="showItemDetails(${JSON.stringify(item).replace(/"/g, '&quot;')})">
-                        <i class="fas fa-eye me-1"></i> View Details
+                    <button class="btn btn-sm ${isDisabled ? 'btn-outline-secondary' : 'btn-outline-primary'} w-100 mt-2"
+                            onclick="${isDisabled ? 'showUnavailableToast()' : `showItemDetails(${JSON.stringify(item).replace(/"/g, '&quot;')})`}"
+                            ${isDisabled ? 'disabled' : ''}>
+                        <i class="fas ${isDisabled ? 'fa-eye-slash' : 'fa-eye'} me-1"></i> ${isDisabled ? 'Unavailable' : 'View Details'}
                     </button>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
 
         itemsGrid.innerHTML = itemsHTML;
     }
@@ -458,9 +467,28 @@
         return typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     }
 
+    // Show toast for unavailable items
+    function showUnavailableToast() {
+        const toast = document.getElementById('toast');
+        const toastBody = document.getElementById('toast-body');
+        
+        if (toast && toastBody) {
+            toastBody.textContent = 'This item is currently unavailable';
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        }
+    }
+
     // Show item details in modal
     function showItemDetails(item) {
         console.log('Viewing item:', item);
+
+        // Check if item is disabled
+        const isDisabled = item.active === 'false' || item.active === false || item.active === 'f';
+        if (isDisabled) {
+            showUnavailableToast();
+            return;
+        }
 
         // Debug: Log all available properties of the item
         console.log('Item properties:', Object.keys(item));

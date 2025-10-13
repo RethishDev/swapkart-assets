@@ -29,6 +29,7 @@ public class ItemResponse {
     private Boolean isAvailable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String active;
     private SellerDto seller;
 
     @Data
@@ -76,6 +77,7 @@ public class ItemResponse {
                 .isAvailable(item.getAvailable())
                 .createdAt(item.getCreatedAt())
                 .updatedAt(item.getUpdatedAt())
+                .active(item.getActive())
                 .seller(item.getUser() != null ? SellerDto.fromUser(item.getUser()) : null)
                 .build();
     }

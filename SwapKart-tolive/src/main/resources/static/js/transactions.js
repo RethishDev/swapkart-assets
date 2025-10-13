@@ -663,7 +663,7 @@ window.TransactionManager = class TransactionManager {
         // Handle buyer/seller info directly from transaction
         if (user.buyerId || user.sellerId) {
             return {
-                id: user.buyerId || user.sellerId,
+                /*id: user.buyerId || user.sellerId,*/
                 name: user.buyerName || user.sellerName || 'Unknown User',
                 email: user.buyerEmail || user.sellerEmail || user.email || '',
                 phone: user.buyerPhone || user.sellerPhone || user.phone || user.mobile || ''
@@ -672,7 +672,7 @@ window.TransactionManager = class TransactionManager {
 
         // Handle regular user object
         return {
-            id: user.id,
+            /*id: user.id,*/
             name: user.name || user.username || 'Unknown User',
             username: user.username,
             email: user.email || '',
@@ -808,7 +808,8 @@ window.TransactionManager = class TransactionManager {
                                         <i class="fas fa-user-circle me-2 fs-4"></i>
                                         <strong>${displayName}</strong>
                                     </div>
-                                    ${displayContact.id ? `<div class="text-muted small">User ID: ${displayContact.id}</div>` : ''}
+                                    //User ID - Commented out
+                                    /*${displayContact.id ? `<div class="text-muted small">User ID: ${displayContact.id}</div>` : ''}*/
                                     ${displayContact.email ? `<div class="mt-1"><i class="fas fa-envelope me-2"></i>${displayContact.email}</div>` : ''}
                                     ${displayContact.phone ? `<div class="mt-1"><i class="fas fa-phone me-2"></i>${displayContact.phone}</div>` : ''}
                                     ${!displayContact.email && !displayContact.phone ?

@@ -236,80 +236,88 @@ async function loadUserItems() {
 
 // Render items in the grid
 function renderItems(items) {
-    if (!items || items.length === 0) {
-        itemsContainer.style.display = 'none';
-        emptyState.style.display = 'block';
-        return;
-    }
+      if (!items || items.length === 0) {
+          itemsContainer.style.display = 'none';
+          emptyState.style.display = 'block';
+          return;
+      }
 
-    itemsContainer.style.display = 'grid';
-    emptyState.style.display = 'none';
-    itemsContainer.innerHTML = '';
+      itemsContainer.style.display = 'grid';
+      emptyState.style.display = 'none';
+      itemsContainer.innerHTML = '';
 
-    items.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'item-card';
+      items.forEach(item => {
+          const card = document.createElement('div');
+          const isDisabled = item.active === false || item.active === 'false' || item.active === 'f';
+          card.className = `item-card ${isDisabled ? 'item-disabled' : ''}`;
 
-        const imageUrl = (item.imageUrls && item.imageUrls.length > 0)
-            ? item.imageUrls[0]
-            : 'https://via.placeholder.com/300x200?text=No+Image';
+          const imageUrl = (item.imageUrls && item.imageUrls.length > 0)
+              ? item.imageUrls[0]
+              : 'https://via.placeholder.com/300x200?text=No+Image';
 
-        // Format the type to be more readable (e.g., 'SELL' -> 'Sell')
-        const formattedType = item.type ?
-            item.type.charAt(0).toUpperCase() + item.type.slice(1).toLowerCase() :
-            'N/A';
+          // Format the type to be more readable (e.g., 'SELL' -> 'Sell')
+          const formattedType = item.type ?
+              item.type.charAt(0).toUpperCase() + item.type.slice(1).toLowerCase() :
+              'N/A';
 
-        // Format the category to be more readable (e.g., 'ELECTRONICS' -> 'Electronics')
-        const formattedCategory = item.category ?
-            item.category.split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ') :
-            'N/A';
+          // Format the category to be more readable (e.g., 'ELECTRONICS' -> 'Electronics')
+          const formattedCategory = item.category ?
+              item.category.split('_')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                  .join(' ') :
+              'N/A';
 
-        card.innerHTML = `
-            <img src="${imageUrl}" alt="${item.title}" class="item-image">
-            <div class="item-details">
-                <div class="item-header">
-                    <h3 class="item-title">${item.title}</h3>
-                    <span class="item-type ${item.type ? item.type.toLowerCase() : ''}">
-                        ${formattedType}
-                    </span>
-                </div>
-                <p class="item-category">
-                    <i class="fas fa-tag"></i> ${formattedCategory}
-                </p>
-                <p class="item-description">${item.description || 'No description provided'}</p>
-                <div class="item-meta">
-                    <span class="item-location">
-                        <i class="fas fa-map-marker-alt"></i> ${item.city || 'N/A'}
-                    </span>
-                    <div class="item-actions">
-                        <button class="action-btn edit-btn" data-id="${item.id}" title="Edit Item">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="action-btn delete-btn" data-id="${item.id}" title="Delete Item">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+          card.innerHTML = `
+              <img src="${imageUrl}" alt="${item.title}" class="item-image">
+              <div class="item-details">
+                  ${isDisabled ? `
+                  <div class="admin-disabled-banner">
+                      <marquee behavior="scroll" onmouseover="this.stop()" onmouseout="this.start()" direction="left" scrollamount="3">
+                          🚫 ADMIN DISABLED - This item is currently unavailable to all users
+                      </marquee>
+                  </div>
+                  ` : ''}
+                  <div class="item-header">
+                      <h3 class="item-title">${item.title}</h3>
+                      <span class="item-type ${item.type ? item.type.toLowerCase() : ''}">
+                          ${formattedType}
+                      </span>
+                  </div>
+                  <p class="item-category">
+                      <i class="fas fa-tag"></i> ${formattedCategory}
+                  </p>
+                  <p class="item-description">${item.description || 'No description provided'}</p>
+                  <div class="item-meta">
+                      <span class="item-location">
+                          <i class="fas fa-map-marker-alt"></i> ${item.city || 'N/A'}
+                      </span>
+                      <div class="item-actions">
+                          <button class="action-btn edit-btn" data-id="${item.id}" title="Edit Item" ${isDisabled ? 'disabled' : ''}>
+                              <i class="fas fa-edit"></i> ${isDisabled ? 'Edit (Disabled)' : 'Edit'}
+                          </button>
+                          <button class="action-btn delete-btn" data-id="${item.id}" title="Delete Item">
+                              <i class="fas fa-trash"></i> Delete
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          `;
 
-        // Add event listeners to the buttons
-        const editBtn = card.querySelector('.edit-btn');
-        const deleteBtn = card.querySelector('.delete-btn');
+          // Rest of your event listeners...
+          const editBtn = card.querySelector('.edit-btn');
+          const deleteBtn = card.querySelector('.delete-btn');
 
-        if (editBtn) {
-            editBtn.addEventListener('click', () => openEditModal(item));
-        }
+          if (editBtn) {
+              editBtn.addEventListener('click', () => openEditModal(item));
+          }
 
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => openDeleteModal(item.id));
-        }
+          if (deleteBtn) {
+              deleteBtn.addEventListener('click', () => openDeleteModal(item.id));
+          }
 
-        itemsContainer.appendChild(card);
-    });
-}
+          itemsContainer.appendChild(card);
+      });
+  }
 
 // Open edit modal with item data
 function openEditModal(item) {
