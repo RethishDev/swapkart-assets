@@ -30,6 +30,8 @@ public class ItemResponseDto {
     private Double price;
     private String active;
     private String sellerName;
+    private String sellerEmail;
+    private String sellerPhone;
 
     public static ItemResponseDto fromEntity(Item item) {
         return ItemResponseDto.builder()
@@ -48,6 +50,8 @@ public class ItemResponseDto {
                 .price(item.getPrice())
                 .active(item.getActive())
                 .sellerName(item.getUser() != null ? item.getUser().getName() : "Unknown")
+                .sellerEmail(item.getUser() != null ? item.getUser().getEmail() : "Unknown")
+                .sellerPhone(item.getUser() != null ? item.getUser().getMobile() : "Unknown")
                 .build();
     }
 }

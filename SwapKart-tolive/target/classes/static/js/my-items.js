@@ -272,8 +272,8 @@ function renderItems(items) {
               <div class="item-details">
                   ${isDisabled ? `
                   <div class="admin-disabled-banner">
-                      <marquee behavior="scroll" direction="left" scrollamount="3">
-                          🚫 ADMIN DISABLED - This item is currently not visible to other users
+                      <marquee behavior="scroll" onmouseover="this.stop()" onmouseout="this.start()" direction="left" scrollamount="3">
+                          🚫 ADMIN DISABLED - This item is currently unavailable to all users
                       </marquee>
                   </div>
                   ` : ''}

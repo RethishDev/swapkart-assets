@@ -742,22 +742,20 @@ window.TransactionManager = class TransactionManager {
                 receiver = isIncoming ? (this.currentUser || {}) : (transaction.receiver || {});
 
                 // Ensure we have the basic fields
-                if (isIncoming) {
-                    requester = {
-                        ...requester,
-                        id: requester.id || transaction.buyerId,
-                        name: requester.name || transaction.buyerName,
-                        email: requester.email || transaction.buyerEmail,
-                        phone: requester.phone || requester.mobile || transaction.buyerPhone
-                    };
-                    receiver = {
-                        ...receiver,
-                        id: receiver.id || transaction.sellerId,
-                        name: receiver.name || transaction.sellerName,
-                        email: receiver.email || transaction.sellerEmail,
-                        phone: receiver.phone || receiver.mobile || transaction.sellerPhone
-                    };
-                }
+                requester = {
+                    ...requester,
+                    id: requester.id || transaction.buyerId,
+                    name: requester.name || transaction.buyerName,
+                    email: requester.email || transaction.buyerEmail,
+                    phone: requester.phone || requester.mobile || transaction.buyerPhone
+                };
+                receiver = {
+                    ...receiver,
+                    id: receiver.id || transaction.sellerId,
+                    name: receiver.name || transaction.sellerName,
+                    email: receiver.email || transaction.sellerEmail,
+                    phone: receiver.phone || receiver.mobile || transaction.sellerPhone
+                };
             }
 
             // Set modal title
@@ -808,8 +806,6 @@ window.TransactionManager = class TransactionManager {
                                         <i class="fas fa-user-circle me-2 fs-4"></i>
                                         <strong>${displayName}</strong>
                                     </div>
-                                    //User ID - Commented out
-                                    /*${displayContact.id ? `<div class="text-muted small">User ID: ${displayContact.id}</div>` : ''}*/
                                     ${displayContact.email ? `<div class="mt-1"><i class="fas fa-envelope me-2"></i>${displayContact.email}</div>` : ''}
                                     ${displayContact.phone ? `<div class="mt-1"><i class="fas fa-phone me-2"></i>${displayContact.phone}</div>` : ''}
                                     ${!displayContact.email && !displayContact.phone ?

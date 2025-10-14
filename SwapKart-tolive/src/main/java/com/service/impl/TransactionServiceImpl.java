@@ -17,6 +17,7 @@ import com.repository.UserRepository;
 import com.service.NotificationInterfaceService;
 import com.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
@@ -66,6 +68,8 @@ public class TransactionServiceImpl implements TransactionService {
             if (transaction.getItem().getUser() != null) {
                 dto.setSellerId(transaction.getItem().getUser().getId());
                 dto.setSellerName(transaction.getItem().getUser().getName());
+                dto.setSellerEmail(transaction.getItem().getUser().getEmail());
+                dto.setSellerPhone(transaction.getItem().getUser().getMobile());
             }
         }
 
@@ -283,6 +287,8 @@ public class TransactionServiceImpl implements TransactionService {
         User seller = transaction.getItem().getUser();
         dto.setSellerId(seller.getId());
         dto.setSellerName(seller.getName());
+        dto.setSellerEmail(seller.getEmail());
+        dto.setSellerPhone(seller.getMobile());
 
         // Buyer details
         User buyer = transaction.getBuyer();
