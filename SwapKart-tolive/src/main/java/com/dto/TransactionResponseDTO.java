@@ -8,7 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+ @Data
 @Getter
 @Setter
 public class TransactionResponseDTO {

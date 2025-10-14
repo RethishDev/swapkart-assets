@@ -238,7 +238,7 @@
                             <i class="fas fa-map-marker-alt me-1"></i>${item.city || 'N/A'}
                         </span>
                         <span class="fw-bold">
-                            ${item.type === 'SELL' ? `$${item.price || '0'}` :
+                            ${item.type === 'SELL' ? `₹${Number(item.price || 0).toLocaleString('en-IN')}` :
                               item.type === 'DONATE' ? 'Free' : 'For Swap'}
                         </span>
                     </div>
@@ -589,7 +589,7 @@
         if (priceElement) {
             if (item.type === 'SELL' || item.type === 'sale') {
                 const price = item.price || 0;
-                priceElement.textContent = `$${parseFloat(price).toFixed(2)}`;
+                priceElement.textContent = `₹${Number(price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 priceElement.classList.add('fw-bold', 'text-success');
             } else if (item.type === 'SWAP' || item.type === 'swap') {
                 priceElement.textContent = 'For Swap';
@@ -1334,7 +1334,7 @@
                         <div class="modal-body">
                             <div class="mb-3">
                                 <h6>${item.title}</h6>
-                                <p class="text-muted small">Price: $${item.price || 'Negotiable'}</p>
+                                <p class="text-muted small">Price: ${item.price ? '₹' + Number(item.price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'Negotiable'}</p>
                             </div>
                             <form id="buyForm" class="needs-validation" novalidate>
                                 <div class="mb-3">

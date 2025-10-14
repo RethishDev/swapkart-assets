@@ -7,9 +7,31 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.util.Optional;
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    
+    @EntityGraph(attributePaths = {"item", "item.user", "buyer", "swapItem"})
+    @Query("SELECT t FROM Transaction t WHERE t.id = :id")
+    default Optional<Transaction> findByIdWithRelations(@Param("id") Long id) {
+        System.out.println("TransactionRepository.findByIdWithRelations called with ID: " + id);
+        Optional<Transaction> result = findByIdWithRelationsQuery(id);
+        System.out.println("Transaction found: " + result.isPresent());
+        result.ifPresent(t -> {
+            System.out.println("Transaction details - ID: " + t.getId() + 
+                             ", Buyer ID: " + (t.getBuyer() != null ? t.getBuyer().getId() : "null") +
+                             ", Item ID: " + (t.getItem() != null ? t.getItem().getId() : "null"));
+        });
+        return result;
+    }
+    
+    @EntityGraph(attributePaths = {"item", "item.user", "buyer", "swapItem"})
+    @Query("SELECT t FROM Transaction t WHERE t.id = :id")
+    Optional<Transaction> findByIdWithRelationsQuery(@Param("id") Long id);
+    
     List<Transaction> findByBuyerId(Long buyerId);
     List<Transaction> findByItemUserId(Long userId);
     

@@ -31,4 +31,9 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     List<Rating> findLatestRatingsByRatedUserId(@Param("userId") Long userId);
 
     boolean existsByRaterIdAndRatedUserId(Long raterId, Long ratedUserId);
+
+    boolean existsByTransactionIdAndRaterId(Long transactionId, Long raterId);
+
+    @Query("SELECT r FROM Rating r WHERE r.transaction.id = :transactionId AND r.rater.id = :raterId")
+    Optional<Rating> findByTransactionIdAndRaterId(@Param("transactionId") Long transactionId, @Param("raterId") Long raterId);
 }

@@ -172,7 +172,7 @@
                         <button class="btn btn-outline-primary mb-2 status-filter active" data-status="all" data-filter="all">
                             <i class="fas fa-list me-2"></i>All Transactions
                         </button>
-                        <button class="btn btn-outline-primary mb-2 status-filter" data-status="PENDING" data-filter="pending">
+                        <!--<button class="btn btn-outline-primary mb-2 status-filter" data-status="PENDING" data-filter="pending">
                             <i class="fas fa-clock me-2"></i>Pending
                         </button>
                         <button class="btn btn-outline-success mb-2 status-filter" data-status="ACCEPTED" data-filter="completed">
@@ -180,13 +180,13 @@
                         </button>
                         <button class="btn btn-outline-danger status-filter" data-status="REJECTED" data-filter="rejected">
                             <i class="fas fa-times-circle me-2"></i>Rejected
-                        </button>
+                        </button>-->
                     </div>
                     <hr>
                     <div class="d-grid">
-                        <button class="btn btn-primary" id="newTransactionBtn">
-                            <i class="fas fa-plus me-2"></i>New Transaction
-                        </button>
+<!--                        <button class="btn btn-primary" id="newTransactionBtn">-->
+<!--                            <i class="fas fa-plus me-2"></i>New Transaction-->
+<!--                        </button>-->
                     </div>
                 </div>
             </div>
@@ -354,103 +354,184 @@ function handleLogout() {
 }
 </script>
 
-<!-- Load WebSocket Libraries -->
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js" onload="console.log('SockJS loaded')"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" onload="console.log('Stomp loaded')"></script>
+<!-- Load jQuery first -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
-<!-- Load transactions.js and initialize -->
-<script src="/js/transactions.js"></script>
+<!-- Load WebSocket Libraries with fallbacks -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js" onerror="console.error('Failed to load SockJS')"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js" onerror="console.error('Failed to load Stomp')"></script>
+
 <script>
-    // Wait for the DOM to be fully loaded
-    document.addEventListener('DOMContentLoaded', async function() {
-        // Function to check if WebSocket libraries are loaded
-        function areWebSocketLibrariesLoaded() {
-            try {
-                return typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined';
-            } catch (e) {
-                console.error('Error checking WebSocket libraries:', e);
-                return false;
-            }
-        }
-
-        // Wait for WebSocket libraries to load with retry
-        async function waitForWebSocketLibraries(maxAttempts = 10, delay = 100) {
-            for (let i = 0; i < maxAttempts; i++) {
-                if (areWebSocketLibrariesLoaded()) {
-                    console.log('WebSocket libraries loaded successfully');
-                    window.webSocketLibrariesLoaded = true;
-                    return true;
-                }
-                console.log(`Waiting for WebSocket libraries... attempt ${i + 1}/${maxAttempts}`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-            console.error('Failed to load WebSocket libraries after', maxAttempts, 'attempts');
+    // Verify WebSocket libraries are loaded
+    function checkWebSocketLibraries() {
+        if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+            console.error('WebSocket libraries not loaded');
             return false;
         }
+        return true;
+    }
 
-        // Main initialization function
-        async function initializeApp() {
-            try {
-                console.log('Starting application initialization...');
-
-                // Wait for WebSocket libraries to load
-                console.log('Checking WebSocket libraries...');
-                const librariesLoaded = await waitForWebSocketLibraries();
-                if (!librariesLoaded) {
-                    throw new Error('WebSocket libraries failed to load. Please check your internet connection and refresh the page.');
-                }
-                console.log('WebSocket libraries verified');
-
-                // Check if TransactionManager is available
-                if (typeof TransactionManager === 'undefined') {
-                    console.error('TransactionManager is not defined');
-                    throw new Error('Failed to load application components. Please try refreshing the page.');
-                }
-
-                console.log('Initializing TransactionManager...');
-                // Initialize TransactionManager
-                window.transactionManager = new TransactionManager();
-                console.log('TransactionManager initialized successfully');
-
-                // Set up event listeners
-                if (typeof setupTransactionEventListeners === 'function') {
-                    console.log('Setting up event listeners...');
-                    setupTransactionEventListeners(window.transactionManager);
-                    console.log('Event listeners set up successfully');
-                } else {
-                    console.warn('setupTransactionEventListeners function not found');
-                }
-
-            } catch (error) {
-                console.error('Initialization error:', error);
-
-                // Show error to user
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'alert alert-danger m-3';
-                errorDiv.style.position = 'fixed';
-                errorDiv.style.top = '1rem';
-                errorDiv.style.left = '50%';
-                errorDiv.style.transform = 'translateX(-50%)';
-                errorDiv.style.zIndex = '9999';
-                errorDiv.style.width = '90%';
-                errorDiv.style.maxWidth = '600px';
-                errorDiv.innerHTML = `
-                    <h5 class="alert-heading">Application Error</h5>
-                    <p>${error.message || 'Failed to initialize application.'}</p>
-                    <hr>
-                    <p class="mb-0">
-                        <button class="btn btn-sm btn-danger" onclick="window.location.reload()">
-                            <i class="fas fa-sync-alt me-1"></i> Refresh Page
-                        </button>
-                    </p>
-                `;
-                document.body.prepend(errorDiv);
-            }
+    // Initialize the application
+    function initializeApp() {
+        console.log('Starting application initialization...');
+        
+        if (!checkWebSocketLibraries()) {
+            const error = new Error('WebSocket libraries not loaded. Please check your internet connection.');
+            console.error('Error initializing application:', error);
+            showInitializationError(error.message);
+            return;
         }
 
-        // Start the application
+        try {
+            // Initialize TransactionManager
+            window.transactionManager = new TransactionManager();
+            console.log('Application initialized successfully');
+        } catch (error) {
+            console.error('Error initializing application:', error);
+            showInitializationError(error.message || 'Failed to initialize application');
+        }
+    }
+
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+        // DOMContentLoaded has already fired
         initializeApp();
-    });
+    }
+</script>
+
+<!-- Load transactions.js after WebSocket libraries -->
+<script src="/js/transactions.js" onerror="console.error('Failed to load transactions.js')"></script>
+
+<!-- Then initialize everything -->
+<script>
+// Show initialization error
+function showInitializationError(message) {
+    console.error('Initialization Error:', message);
+    const errorDiv = document.getElementById('initializationError');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    } else {
+        console.error('Error div not found');
+    }
+}
+
+// Check if TransactionManager is defined
+function isTransactionManagerDefined() {
+    try {
+        return typeof window.TransactionManager === 'function';
+    } catch (e) {
+        console.error('Error checking TransactionManager:', e);
+        return false;
+    }
+}
+
+// Initialize the TransactionManager
+function initializeTransactionManager() {
+    try {
+        if (isTransactionManagerDefined()) {
+            console.log('Creating new TransactionManager instance...');
+            window.transactionManager = new window.TransactionManager();
+            console.log('TransactionManager initialized successfully');
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error initializing TransactionManager:', error);
+        showInitializationError('Failed to initialize TransactionManager: ' + error.message);
+        return false;
+    }
+}
+
+// Main initialization function
+async function initializeApp() {
+    console.log('Starting application initialization...');
+    
+    // Show loading state
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loadingIndicator';
+    loadingDiv.className = 'text-center p-4';
+    loadingDiv.innerHTML = `
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading transactions...</p>`;
+    document.body.prepend(loadingDiv);
+    
+    try {
+        // Check if WebSocket libraries are loaded
+        if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+            throw new Error('WebSocket libraries not loaded. Please check your internet connection.');
+        }
+        
+        // Check if TransactionManager is available
+        if (typeof TransactionManager === 'undefined') {
+            throw new Error('Failed to load transaction manager. Please refresh the page.');
+        }
+        
+        // Initialize TransactionManager
+        window.transactionManager = new TransactionManager();
+        
+        // Hide loading indicator
+        const indicator = document.getElementById('loadingIndicator');
+        if (indicator) {
+            indicator.remove();
+        }
+        
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        
+        // Remove loading indicator if it exists
+        const indicator = document.getElementById('loadingIndicator');
+        if (indicator) {
+            indicator.remove();
+        }
+        
+        // Show error message to user
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger m-3';
+        errorDiv.role = 'alert';
+        errorDiv.innerHTML = `
+            <h4 class="alert-heading">Initialization Error</h4>
+            <p>${error.message || 'Failed to initialize the application. Please try refreshing the page.'}</p>
+            <hr>
+            <p class="mb-0">If the problem persists, please contact support.</p>`;
+            
+        // Add retry button
+        const retryButton = document.createElement('button');
+        retryButton.className = 'btn btn-primary mt-2';
+        retryButton.textContent = 'Retry';
+        retryButton.onclick = function() {
+            errorDiv.remove();
+            initializeApp();
+        };
+        
+        // Add refresh button
+        const refreshButton = document.createElement('button');
+        refreshButton.className = 'btn btn-sm btn-danger mt-2 ms-2';
+        refreshButton.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Refresh Page';
+        refreshButton.onclick = function() {
+            window.location.reload();
+        };
+        
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'mt-3';
+        buttonContainer.appendChild(retryButton);
+        buttonContainer.appendChild(refreshButton);
+        errorDiv.appendChild(buttonContainer);
+        document.body.prepend(errorDiv);
+    }
+}
+
+// Start the application when the DOM is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    // DOMContentLoaded has already fired
+    initializeApp();
+}
 </script>
 </body>
 </html>

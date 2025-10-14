@@ -3,6 +3,7 @@ package com.service.impl;
 import com.dto.RatingRequest;
 import com.dto.RatingResponse;
 import com.entity.*;
+import com.entity.enums.TransactionStatus;
 import com.exception.ResourceNotFoundException;
 import com.exception.UnauthorizedException;
 import com.repository.RatingRepository;
@@ -149,11 +150,78 @@ public class RatingServiceImpl implements RatingService {
     public boolean hasUserRated(Long raterId, Long ratedUserId) {
         return ratingRepository.existsByRaterIdAndRatedUserId(raterId, ratedUserId);
     }
-
+    
     @Override
     public RatingResponse getRatingByTransaction(Long transactionId) {
         Rating rating = ratingRepository.findByTransactionId(transactionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rating not found for transaction id: " + transactionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Rating not found for transaction: " + transactionId));
         return RatingResponse.fromEntity(rating);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isTransactionEligibleForRating(Long transactionId, Long userId) {
+        // Get the transaction
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with id: " + transactionId));
+        
+        // Check if the user is the buyer of this transaction
+        if (!transaction.getBuyer().getId().equals(userId)) {
+            return false;
+        }
+        
+        // Check if the transaction is in a rateable state (ACCEPTED or COMPLETED)
+        if (transaction.getStatus() != TransactionStatus.ACCEPTED && 
+            transaction.getStatus() != TransactionStatus.COMPLETED) {
+            return false;
+        }
+        
+        // Check if the user has already rated this transaction
+        return !ratingRepository.existsByTransactionIdAndRaterId(transactionId, userId);
+    }
+    
+    @Override
+    @Transactional
+    public RatingResponse rateTransaction(Long transactionId, RatingRequest request, Long userId) {
+        // Get the transaction
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with id: " + transactionId));
+        
+        // Verify the user is the buyer of this transaction
+        if (!transaction.getBuyer().getId().equals(userId)) {
+            throw new UnauthorizedException("Only the buyer can rate this transaction");
+        }
+        
+        // Verify the transaction is in a rateable state
+        if (transaction.getStatus() != TransactionStatus.ACCEPTED && 
+            transaction.getStatus() != TransactionStatus.COMPLETED) {
+            throw new IllegalStateException("This transaction cannot be rated in its current state");
+        }
+        
+        // Check if the user has already rated this transaction
+        Rating existingRating = ratingRepository.findByTransactionIdAndRaterId(transactionId, userId)
+                .orElse(null);
+        
+        if (existingRating != null) {
+            // Update existing rating
+            existingRating.setScore(request.getScore());
+            existingRating.setComment(request.getComment());
+            Rating updatedRating = ratingRepository.save(existingRating);
+            return RatingResponse.fromEntity(updatedRating);
+        } else {
+            // Create new rating
+            User seller = transaction.getItem().getUser();
+            
+            Rating rating = Rating.builder()
+                    .rater(transaction.getBuyer())
+                    .ratedUser(seller)
+                    .transaction(transaction)
+                    .score(request.getScore())
+                    .comment(request.getComment())
+                    .build();
+            
+            Rating savedRating = ratingRepository.save(rating);
+            return RatingResponse.fromEntity(savedRating);
+        }
     }
 }

@@ -14,51 +14,48 @@ window.TransactionManager = class TransactionManager {
     }
 
     async initialize() {
-        console.log('Initializing TransactionManager with user:', this.currentUser);
-        
+        //console.log('Initializing TransactionManager with user:', this.currentUser);
+
         if (!this.currentUser || !this.currentUser.id) {
-            console.warn('No valid user found, WebSocket not initialized');
-            this.showError('Please log in to view transactions');
+            const error = 'No valid user found. Please log in to view transactions';
+            console.warn(error);
+            this.showError(error);
             return;
         }
 
-        // Verify WebSocket libraries are loaded
-        if (!window.webSocketLibrariesLoaded) {
-            console.warn('WebSocket libraries not loaded, retrying...');
-            setTimeout(() => this.initialize(), 1000);
-            return;
-        }
-
-        // Initialize WebSocket
-        await this.initializeWebSocket();
-        
-        // Load initial data
         try {
+            // Initialize WebSocket
+            await this.initializeWebSocket();
+            
+            // Load initial data
             await this.loadInitialData();
+            
+            console.log('TransactionManager initialized successfully');
+            
         } catch (error) {
-            console.error('Error loading initial data:', error);
-            this.showError('Failed to load initial data. Please refresh the page.');
+            const errorMsg = error.message || 'Failed to initialize TransactionManager';
+            console.error('Initialization error:', errorMsg, error);
+            this.showError(errorMsg);
+            throw error; // Re-throw to be caught by the global error handler
         }
     }
 
     // Load initial data when the page loads
     async loadInitialData() {
         try {
-            console.log('Loading initial data...');
-            
             // Load transactions for the current tab
             await this.loadTransactions();
-            
+
             // Load unread notifications
             await this.loadNotifications();
-            
-            console.log('Initial data loaded successfully');
+
+            //console.log('Initial data loaded successfully');
         } catch (error) {
             console.error('Error loading initial data:', error);
             this.showError('Failed to load initial data. Please refresh the page.');
         }
     }
-    
+
     // Initialize WebSocket connection for real-time updates
     async initializeWebSocket() {
         if (this.stompClient && this.stompClient.connected) {
@@ -78,7 +75,7 @@ window.TransactionManager = class TransactionManager {
         try {
             const socket = new SockJS('/ws');
             this.stompClient = Stomp.over(socket);
-            
+
             // Configure debug logging - use console.debug in development, no-op in production
             this.stompClient.debug = (message) => {
                 // Only log if not in production (you can remove this check if you want debug logs in production)
@@ -86,14 +83,14 @@ window.TransactionManager = class TransactionManager {
                     console.debug('WebSocket:', message);
                 }
             };
-            
+
             // Set heartbeat (in ms) - helps detect connection issues
             this.stompClient.heartbeatIncoming = 10000; // 10 seconds
             this.stompClient.heartbeatOutgoing = 10000; // 10 seconds
-            
+
             // Set connection timeout (in ms) - increased to 10 seconds
             const connectTimeout = 10000;
-            
+
             // Create a promise that will reject after timeout
             return new Promise((resolve, reject) => {
                 const timeoutId = setTimeout(() => {
@@ -102,7 +99,7 @@ window.TransactionManager = class TransactionManager {
                     this.handleWebSocketError(error);
                     reject(error);
                 }, connectTimeout);
-                
+
                 const connectCallback = (frame) => {
                     clearTimeout(timeoutId);
                     console.log('Successfully connected to WebSocket');
@@ -110,21 +107,21 @@ window.TransactionManager = class TransactionManager {
                     this.subscribeToNotifications();
                     resolve(true);
                 };
-                
+
                 const errorCallback = (error) => {
                     clearTimeout(timeoutId);
                     console.error('WebSocket connection error:', error);
                     this.handleWebSocketError(error);
                     reject(error);
                 };
-                
+
                 this.stompClient.connect(
                     this.getAuthHeaders(), // Include auth headers
                     connectCallback,
                     errorCallback
                 );
             });
-            
+
         } catch (error) {
             console.error('Error initializing WebSocket:', error);
             this.handleWebSocketError(error);
@@ -233,11 +230,9 @@ window.TransactionManager = class TransactionManager {
     // Get current user from localStorage or global window object
     getCurrentUser() {
         try {
-            console.log('Getting current user from localStorage...');
-            
             // Check if we have a user in the global scope first
             if (window.currentUser && window.currentUser.userId) {
-                console.log('Found user in window.currentUser:', window.currentUser);
+                //console.log('Found user in window.currentUser:', window.currentUser);
                 return window.currentUser;
             }
             
@@ -259,7 +254,7 @@ window.TransactionManager = class TransactionManager {
                 role: role || 'USER'
             };
             
-            console.log('Created user object from localStorage:', user);
+            //console.log('Created user object from localStorage:', user);
             
             // Store in window for future use
             window.currentUser = user;
@@ -392,15 +387,11 @@ window.TransactionManager = class TransactionManager {
     // Load unread notifications with improved error handling
     async loadNotifications() {
         try {
-            console.log('Loading unread notifications...');
-
             const response = await fetch(`${this.notificationUrl}/unread`, {
                 method: 'GET',
                 headers: this.getAuthHeaders(),
                 credentials: 'include' // Important for cookies/sessions
             });
-
-            console.log(`Notifications API response status: ${response.status} ${response.statusText}`);
 
             if (!response.ok) {
                 let errorMessage = 'Failed to load notifications';
@@ -421,7 +412,6 @@ window.TransactionManager = class TransactionManager {
             }
 
             const notifications = await response.json();
-            console.log(`Successfully loaded ${notifications.length} unread notifications`);
 
             this.updateNotificationBadge(notifications.length);
             this.renderNotificationDropdown(notifications);
@@ -609,7 +599,6 @@ window.TransactionManager = class TransactionManager {
             }
 
             const transaction = await response.json();
-            console.log('Transaction details:', transaction); // Debug log
 
             // If sender details are missing, try to fetch them
             if (!transaction.sender || !transaction.sender.name) {
@@ -682,13 +671,71 @@ window.TransactionManager = class TransactionManager {
 
     // Render transaction details in modal
     renderTransactionDetails(transaction) {
+
         // Validate input and get DOM elements
         if (!transaction) {
             console.error('No transaction data provided');
             this.showError('Failed to load transaction details');
             return;
         }
+        
+        // Check if this is a sent request (current user is the sender) with ACCEPTED status
+        // Update the sender check to use sellerId and buyerId
+        const currentUserId = this.currentUser?.id?.toString();
+        const isBuyer = currentUserId === transaction.buyerId?.toString();
+        const isSeller = currentUserId === transaction.sellerId?.toString();
 
+        // Show rating section if the current user is the buyer and status is ACCEPTED
+        const shouldShowRating = isBuyer && transaction.status === 'ACCEPTED';
+
+        console.log('Rating section conditions:', {
+            currentUserId: currentUserId,
+            sellerId: transaction.sellerId,
+            buyerId: transaction.buyerId,
+            isSeller,
+            status: transaction.status,
+            shouldShowRating
+        });
+        
+        // Store the transaction ID for rating functionality
+        this.currentTransaction = transaction;
+        
+        const ratingSectionId = `ratingSection-${transaction.id}`;
+
+        if (shouldShowRating) {
+            console.log('Adding rating section for sent and accepted transaction');
+
+            // First add the rating section to the DOM
+            const ratingSection = this.addRatingSection(transaction, shouldShowRating);
+
+            if (ratingSection) {
+                // Initialize the rating section immediately
+                this.initializeRatingSection(transaction).catch(error => {
+                    console.error('Error initializing rating section:', error);
+                });
+            }
+        }
+
+        // Function to initialize the rating section after it's added to the DOM
+        const initRatingSection = async () => {
+            console.log('Initializing rating section for transaction:', transaction.id);
+            
+            // First, ensure the rating section is added to the DOM
+            if (!document.getElementById(ratingSectionId) && !addRatingSection()) {
+                console.error('Failed to add rating section to the DOM');
+                return;
+            }
+            
+            // Then initialize it
+            try {
+                await this.initializeRatingSection(transaction);
+                console.log('Rating section initialized successfully');
+            } catch (error) {
+                console.error('Error initializing rating section:', error);
+            }
+        };
+        
+        // Get modal elements
         const modal = document.getElementById('transactionDetailModal');
         if (!modal) {
             console.error('Transaction detail modal not found');
@@ -702,6 +749,26 @@ window.TransactionManager = class TransactionManager {
         if (!title || !body || !footer) {
             console.error('Required modal elements not found');
             return;
+        }
+
+        // Store the current scroll position
+        const scrollPosition = window.scrollY;
+        
+        // Show the modal first
+        if (this.currentModal) {
+            this.currentModal.show();
+        }
+        
+        // Only add and initialize rating section for sent and accepted requests
+        if (shouldShowRating) {
+            console.log('Adding rating section for sent and accepted transaction');
+            this.initializeRatingSection(transaction).catch(error => {
+                console.error('Error initializing rating section:', error);
+            });
+        } else {
+            console.log('Skipping rating section. Reason:',
+                !shouldShowRating ? 'Buyer is not the current user or Status is not ACCEPTED' :
+                'Unknown reason');
         }
         
         try {
@@ -822,49 +889,162 @@ window.TransactionManager = class TransactionManager {
                                 <h6>Date:</h6>
                                 <p>${this.formatDate(transaction.createdAt, true)}</p>
                             </div>
+                            
+                            <!-- Rating Section (only show for completed/accepted transactions where current user is buyer) -->
+                            ${(transaction.status === 'ACCEPTED' || transaction.status === 'COMPLETED') && 
+                              this.currentUser && this.currentUser.id === transaction.buyerId ? `
+                            <div class="mt-4 pt-3 border-top">
+                                <h6>Rate This Transaction</h6>
+                                <div id="ratingSection-${transaction.id}" class="rating-section mt-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rating-stars me-3" style="font-size: 1.5rem;">
+                                            ${[1, 2, 3, 4, 5].map(star => `
+                                                <i class="far fa-star" data-rating="${star}" 
+                                                   style="cursor: pointer; color: #ffc107; margin-right: 5px;"
+                                                   onmouseover="this.classList.replace('far', 'fas')" 
+                                                   onmouseout="this.classList.replace('fas', 'far')"></i>
+                                            `).join('')}
+                                        </div>
+                                        <button id="rateTransactionBtn-${transaction.id}" class="rate-transaction-btn btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-star me-1"></i> Rate This Transaction
+                                        </button>
+                                    </div>
+                                    <div id="existingRating-${transaction.id}" class="existing-rating mt-2 d-none">
+                                        <div class="alert alert-info p-2 mb-0">
+                                            <i class="fas fa-check-circle me-1"></i> 
+                                            You've rated this transaction
+                                            <span id="userRatingStars-${transaction.id}" class="text-warning"></span>
+                                            <button id="editRatingBtn-${transaction.id}" class="edit-rating-btn btn btn-sm btn-link p-0 ms-2">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
             </div>
         `;
 
-        // Add action buttons for received requests that are pending or have null status
-        const isPending = transaction.status === 'PENDING' || transaction.status === 'pending' || !transaction.status;
-        const showActions = (isIncoming || transaction.type === 'received') && isPending;
-        
-        if (showActions) {
-            footer.innerHTML = `
-                <button type="button" class="btn btn-success" id="acceptBtn">
-                    <i class="fas fa-check me-1"></i> Accept
-                </button>
-                <button type="button" class="btn btn-danger" id="rejectBtn">
-                    <i class="fas fa-times me-1"></i> Reject
-                </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            `;
+            // Add action buttons for received requests that are pending or have null status
+            const isPending = transaction.status === 'PENDING' || transaction.status === 'pending' || !transaction.status;
+            const showActions = (isIncoming || transaction.type === 'received') && isPending;
 
-            // Add event listeners for accept/reject buttons
-            document.getElementById('acceptBtn').addEventListener('click', () => {
-                this.updateTransactionStatus(transaction.id, 'ACCEPTED');
-            });
+            if (showActions) {
+                footer.innerHTML = `
+                    <button type="button" class="btn btn-success" id="acceptBtn">
+                        <i class="fas fa-check me-1"></i> Accept
+                    </button>
+                    <button type="button" class="btn btn-danger" id="rejectBtn">
+                        <i class="fas fa-times me-1"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                `;
 
-            document.getElementById('rejectBtn').addEventListener('click', () => {
-                this.updateTransactionStatus(transaction.id, 'REJECTED');
-            });
-        } else {
-            footer.innerHTML = `
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            `;
-        }
+                // Add event listeners for accept/reject buttons
+                document.getElementById('acceptBtn').addEventListener('click', () => {
+                    this.updateTransactionStatus(transaction.id, 'ACCEPTED');
+                });
+
+                document.getElementById('rejectBtn').addEventListener('click', () => {
+                    this.updateTransactionStatus(transaction.id, 'REJECTED');
+                });
+            } else {
+                footer.innerHTML = `
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                `;
+            }
 
             // Show the modal (using the existing instance)
             if (this.currentModal) {
+                console.log('Initializing transaction modal...');
+                
+                // Show the modal first
                 this.currentModal.show();
+                console.log('Modal shown');
+                
+                // Initialize rating section if this is an accepted/completed transaction
+                const isStatusValid = transaction.status === 'ACCEPTED' || transaction.status === 'COMPLETED';
+                const isBuyer = Number(this.currentUser.id) === transaction.buyerId;
+                
+                console.log('Modal initialization - isStatusValid:', isStatusValid, 'isBuyer:', isBuyer);
+                
+                if (isStatusValid && isBuyer) {
+                    console.log('Initializing rating section for transaction:', transaction.id);
+                    // Use setTimeout to ensure the modal is fully rendered
+                    setTimeout(() => {
+                        this.initializeRatingSection(transaction);
+                    }, 100);
+                } else {
+                    console.log('Skipping rating section initialization. Reason:', 
+                        !isStatusValid ? 'Transaction status is not ACCEPTED/COMPLETED' : 'User is not the buyer');
+                }
             }
         } catch (error) {
-            console.error('Error rendering transaction details:', error);
-            this.showError('An error occurred while loading transaction details');
+           console.error('Error rendering transaction modal:', error);
+           alert('Failed to load transaction details. Please try again.');
         }
+
+    }
+
+    addRatingSection(transaction, shouldShowRating) {
+        if (!shouldShowRating) {
+            console.log('Skipping rating section - conditions not met');
+            return null;
+        }
+
+        console.log('Adding rating section for transaction:', transaction.id);
+
+        // Remove any existing rating section first
+        const existingRating = document.getElementById(`ratingSection-${transaction.id}`);
+        if (existingRating) {
+            existingRating.remove();
+        }
+
+        // Create the rating section
+        const ratingSection = document.createElement('div');
+        ratingSection.id = `ratingSection-${transaction.id}`;
+        ratingSection.className = 'rating-section mt-3';
+        ratingSection.style.display = 'block';
+
+        // Add the rating HTML
+        ratingSection.innerHTML = `
+            <div class="border-top pt-3">
+                <h5>Rate this Transaction</h5>
+                <div class="d-flex align-items-center">
+                    <div class="star-rating" id="ratingStars-${transaction.id}">
+                        ${[1, 2, 3, 4, 5].map(star => `
+                            <i class="far fa-star star" data-rating="${star}" style="font-size: 1.5rem; cursor: pointer; margin-right: 5px;"></i>
+                        `).join('')}
+                        <span class="ms-2" id="ratingText-${transaction.id}">0/5</span>
+                    </div>
+                    <button id="submitRating-${transaction.id}" class="btn btn-sm btn-primary ms-3">Submit</button>
+                </div>
+                <div class="mt-2">
+                    <textarea id="ratingComment-${transaction.id}" class="form-control" rows="2"
+                              placeholder="Add a comment (optional)"></textarea>
+                </div>
+            </div>
+        `;
+
+        // Find the modal body where transaction details are loaded
+        const modalBody = document.querySelector('#transactionDetailModal .modal-body');
+        if (modalBody) {
+            // Try to find a good place to insert the rating section
+            const transactionDate = modalBody.querySelector('.transaction-date');
+            if (transactionDate && transactionDate.parentNode) {
+                transactionDate.parentNode.insertBefore(ratingSection, transactionDate.nextSibling);
+            } else {
+                modalBody.appendChild(ratingSection);
+            }
+        }
+
+        console.log('Rating section added with ID:', ratingSection.id);
+        return ratingSection;
     }
 
     // Update transaction status (accept/reject)
@@ -872,7 +1052,8 @@ window.TransactionManager = class TransactionManager {
         try {
             // The backend gets the user from the authentication token
             // and expects the status as a query parameter
-            const response = await fetch(`${this.baseUrl}/${transactionId}/status?status=${status.toUpperCase()}`, {
+            const url = this.baseUrl + '/' + transactionId + '/status?status=' + status.toUpperCase();
+            const response = await fetch(url, {
                 method: 'PUT',
                 headers: this.getAuthHeaders()
             });
@@ -889,7 +1070,7 @@ window.TransactionManager = class TransactionManager {
             this.loadTransactions();
 
             // Show success message
-            this.showSuccess(`Transaction ${status} successfully`);
+            this.showToast('Transaction ' + status + ' successfully', 'success');
             
             // Close and clean up the modal
             if (this.currentModal) {
@@ -921,14 +1102,13 @@ window.TransactionManager = class TransactionManager {
     // Mark notification as read
     async markAsRead(transactionId) {
         try {
-            await fetch(`${this.notificationUrl}/${transactionId}/read`, {
+            await fetch(this.notificationUrl + '/' + transactionId + '/read', {
                 method: 'PUT',
                 headers: this.getAuthHeaders()
             });
             
             // Update the UI
-            const badge = document.querySelector(`[data-transaction-id="${transactionId}"] .notification-badge`);
-            if (badge) badge.remove();
+            const badge = document.querySelector('[data-transaction-id="' + transactionId + '"] .notification-badge');            if (badge) badge.remove();
             
             // Update notification count
             this.loadNotifications();
@@ -937,65 +1117,106 @@ window.TransactionManager = class TransactionManager {
         }
     }
 
-    // Render notification dropdown
+    /**
+     * Renders the notification dropdown with the provided notifications
+     * @param {Array} notifications - Array of notification objects
+     */
     renderNotificationDropdown(notifications) {
         const dropdown = document.getElementById('notificationDropdown');
-        if (!dropdown) return;
-        
-        if (!notifications || notifications.length === 0) {
-            dropdown.innerHTML = `
-                <li><h6 class="dropdown-header">No new notifications</h6></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-center py-2" href="#">All caught up!</a></li>
-            `;
+        if (!dropdown) {
+            console.warn('Notification dropdown element not found');
             return;
         }
-        
-        let html = '<li><h6 class="dropdown-header">New Notifications</h6></li>';
-        html += '<li><hr class="dropdown-divider"></li>';
-        
-        notifications.slice(0, 5).forEach(notification => {
-            html += `
-                <li>
-                    <a class="dropdown-item" href="#" data-id="${notification.id}">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0 me-2">
-                                <img src="${notification.senderAvatar || '/images/default-item.svg'}"
-                                     class="rounded-circle" width="32" height="32" 
-                                     alt="${notification.senderName}">
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">${notification.title}</div>
-                                <small class="text-muted">${notification.message}</small>
-                            </div>
-                            ${notification.unread ? '<span class="badge bg-danger rounded-pill">New</span>' : ''}
-                        </div>
-                    </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-            `;
-        });
-        
-        if (notifications.length > 5) {
-            html += `
-                <li>
-                    <a class="dropdown-item text-center" href="/transactions.html">
-                        View all notifications
-                    </a>
-                </li>
-            `;
-        }
-        
-        dropdown.innerHTML = html;
-        
-        // Add click handlers for notification items
-        dropdown.querySelectorAll('[data-id]').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const notificationId = item.getAttribute('data-id');
-                this.handleNotificationClick(notificationId);
+
+        try {
+            let html = '';
+
+            if (!notifications || notifications.length === 0) {
+                dropdown.innerHTML = [
+                    '<li><h6 class="dropdown-header">No new notifications</h6></li>',
+                    '<li><hr class="dropdown-divider"></li>',
+                    '<li><a class="dropdown-item text-center py-2" href="#">All caught up!</a></li>'
+                ].join('');
+                return;
+            }
+
+            // Display up to 5 most recent notifications
+            const recentNotifications = notifications.slice(0, 5);
+            
+            recentNotifications.forEach(notification => {
+                if (!notification) return;
+                
+                const senderName = this.escapeHtml(notification.senderName || 'Unknown');
+                const title = this.escapeHtml(notification.title || 'New notification');
+                const message = this.escapeHtml(notification.message || '');
+                const avatarSrc = this.escapeHtml(notification.senderAvatar || '/images/default-item.svg');
+                const isUnread = notification.unread ? '<span class="badge bg-danger rounded-pill">New</span>' : '';
+
+                html += [
+                    '<li>',
+                    '  <a class="dropdown-item" href="#" data-id="', (notification.id || ''), '">',
+                    '    <div class="d-flex align-items-center">',
+                    '      <div class="flex-shrink-0 me-2">',
+                    '        <img src="', avatarSrc, '" class="rounded-circle" width="32" height="32"',
+                    '             alt="', senderName, '" onerror="this.onerror=null; this.src=\'/images/default-item.svg\'">',
+                    '      </div>',
+                    '      <div class="flex-grow-1">',
+                    '        <div class="fw-bold">', title, '</div>',
+                    '        <small class="text-muted">', message, '</small>',
+                    '      </div>',
+                    '      ', isUnread,
+                    '    </div>',
+                    '  </a>',
+                    '</li>',
+                    '<li><hr class="dropdown-divider"></li>'
+                ].join('');
             });
-        });
+
+            // Add view all link if there are more than 5 notifications
+            if (notifications.length > 5) {
+                html += [
+                    '<li><a class="dropdown-item text-center" href="/notifications">',
+                    '  <i class="fas fa-list me-1"></i> View All Notifications (', notifications.length, ')',
+                    '</a></li>'
+                ].join('');
+            }
+
+            dropdown.innerHTML = html;
+
+            // Add click handlers for notification items
+            const clickHandler = (e) => {
+                e.preventDefault();
+                const notificationId = e.currentTarget.getAttribute('data-id');
+                if (notificationId && typeof this.handleNotificationClick === 'function') {
+                    this.handleNotificationClick(notificationId);
+                }
+            };
+
+            dropdown.querySelectorAll('[data-id]').forEach(item => {
+                item.removeEventListener('click', clickHandler); // Remove existing handler to prevent duplicates
+                item.addEventListener('click', clickHandler);
+            });
+        } catch (error) {
+            console.error('Error rendering notification dropdown:', error);
+            dropdown.innerHTML = [
+                '<li><h6 class="dropdown-header text-danger">Error loading notifications</h6></li>',
+                '<li><hr class="dropdown-divider"></li>',
+                '<li><a class="dropdown-item text-center" href="#" onclick="window.location.reload()">',
+                '  <i class="fas fa-sync-alt me-1"></i> Refresh',
+                '</a></li>'
+            ].join('');
+        }
+    }
+
+    // Helper method to escape HTML special characters
+    escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     // Handle notification click
@@ -1011,48 +1232,117 @@ window.TransactionManager = class TransactionManager {
 
     // Show notification toast
     showNotificationToast(notification) {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
+        // Create a safe reference to 'this' for use in callbacks
+        const self = this;
         
-        const toastId = `toast-${Date.now()}`;
-        const toast = document.createElement('div');
-        toast.id = toastId;
-        toast.className = 'toast align-items-center text-white bg-primary border-0';
-        toast.role = 'alert';
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-        
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    <strong>${notification.title}</strong><br>
-                    ${notification.message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        `;
-        
-        toastContainer.appendChild(toast);
-        
-        // Initialize and show the toast
-        const bsToast = new bootstrap.Toast(toast, {
-            autohide: true,
-            delay: 5000
-        });
-        
-        bsToast.show();
-        
-        // Remove the toast after it's hidden
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
-        });
-        
-        // Click handler to navigate to transaction
-        toast.addEventListener('click', () => {
-            this.showTransactionDetails(notification.transactionId);
-            bsToast.hide();
-        });
+        try {
+            const toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                console.warn('Toast container not found');
+                return;
+            }
+            
+            // Create toast element
+            const toastId = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = 'toast align-items-center text-white bg-primary border-0';
+            toast.role = 'alert';
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            // Ensure notification object exists and has required properties
+            const title = notification?.title || 'Notification';
+            const message = notification?.message || '';
+            const transactionId = notification?.transactionId;
+            
+            // Create toast content
+            const toastDiv = document.createElement('div');
+            toastDiv.className = 'd-flex';
+            
+            const toastBody = document.createElement('div');
+            toastBody.className = 'toast-body';
+            
+            // Add title
+            if (title) {
+                const titleEl = document.createElement('strong');
+                titleEl.textContent = title;
+                toastBody.appendChild(titleEl);
+            }
+            
+            // Add message
+            if (message) {
+                if (title) toastBody.appendChild(document.createElement('br'));
+                const messageEl = document.createElement('div');
+                messageEl.textContent = message;
+                toastBody.appendChild(messageEl);
+            }
+            
+            // Add close button
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+            closeButton.setAttribute('data-bs-dismiss', 'toast');
+            closeButton.setAttribute('aria-label', 'Close');
+            
+            // Assemble toast
+            toastDiv.appendChild(toastBody);
+            toastDiv.appendChild(closeButton);
+            toast.appendChild(toastDiv);
+            
+            // Add to container
+            toastContainer.appendChild(toast);
+            
+            // Initialize Bootstrap toast
+            if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                const toastOptions = {
+                    autohide: true,
+                    delay: 5000
+                };
+                
+                const bsToast = new bootstrap.Toast(toast, toastOptions);
+                
+                // Add click handler for transaction navigation if transactionId exists
+                if (transactionId) {
+                    toast.style.cursor = 'pointer';
+                    const clickHandler = function() {
+                        if (typeof self.showTransactionDetails === 'function') {
+                            self.showTransactionDetails(transactionId);
+                        }
+                        bsToast.hide();
+                    };
+                    toast.addEventListener('click', clickHandler);
+                }
+                
+                // Handle toast removal after hide
+                const hiddenHandler = function() {
+                    if (toast && toast.parentNode === toastContainer) {
+                        toastContainer.removeChild(toast);
+                        // Clean up event listeners
+                        toast.removeEventListener('hidden.bs.toast', hiddenHandler);
+                        if (transactionId) {
+                            toast.removeEventListener('click', clickHandler);
+                        }
+                    }
+                };
+                
+                toast.addEventListener('hidden.bs.toast', hiddenHandler);
+                
+                // Show the toast
+                bsToast.show();
+                
+            } else {
+                console.error('Bootstrap Toast not available');
+                // Fallback: Auto-remove after delay
+                setTimeout(() => {
+                    if (toast.parentNode === toastContainer) {
+                        toastContainer.removeChild(toast);
+                    }
+                }, 5000);
+            }
+        } catch (error) {
+            console.error('Error showing notification toast:', error);
+        }
     }
 
     // Show success message
@@ -1089,52 +1379,102 @@ window.TransactionManager = class TransactionManager {
     
     // Show toast message
     showToast(message, type = 'info') {
-        let toastContainer = document.getElementById('toastContainer');
-        
-        // Create container if it doesn't exist
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toastContainer';
-            toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
-            toastContainer.style.zIndex = '9999';
-            toastContainer.style.marginTop = '70px';
-            document.body.appendChild(toastContainer);
+        try {
+            // Create a safe reference to 'this' for use in callbacks
+            const self = this;
+            
+            // Get or create toast container
+            let toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
+                toastContainer.style.zIndex = '9999';
+                toastContainer.style.marginTop = '70px';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toastId = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = 'toast align-items-center text-white bg-' + type + ' border-0 shadow-lg';
+            toast.role = 'alert';
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.style.minWidth = '300px';
+            
+            // Create toast content using DOM methods instead of innerHTML
+            const toastDiv = document.createElement('div');
+            toastDiv.className = 'd-flex';
+            
+            const toastBody = document.createElement('div');
+            toastBody.className = 'toast-body';
+            
+            // Add icon
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-' + this.getToastIcon(type) + ' me-2';
+            toastBody.appendChild(icon);
+            
+            // Add message text
+            const messageNode = document.createTextNode(message);
+            toastBody.appendChild(messageNode);
+            
+            // Add close button
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+            closeButton.setAttribute('data-bs-dismiss', 'toast');
+            closeButton.setAttribute('aria-label', 'Close');
+            
+            // Assemble toast
+            toastDiv.appendChild(toastBody);
+            toastDiv.appendChild(closeButton);
+            toast.appendChild(toastDiv);
+            
+            // Add to container
+            toastContainer.appendChild(toast);
+            
+            // Initialize Bootstrap toast
+            if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                const toastOptions = {
+                    autohide: true,
+                    delay: 4000
+                };
+                
+                const bsToast = new bootstrap.Toast(toast, toastOptions);
+                
+                // Handle toast removal after hide
+                const hiddenHandler = function() {
+                    if (toast && toast.parentNode === toastContainer) {
+                        toast.remove();
+                        toast.removeEventListener('hidden.bs.toast', hiddenHandler);
+                    }
+                };
+                
+                toast.addEventListener('hidden.bs.toast', hiddenHandler);
+                
+                // Show the toast
+                bsToast.show();
+                
+                // Return the toast instance for potential external control
+                return bsToast;
+            } else {
+                console.warn('Bootstrap Toast not available, using fallback');
+                // Fallback: Auto-remove after delay
+                setTimeout(() => {
+                    if (toast.parentNode === toastContainer) {
+                        toast.remove();
+                    }
+                }, 4000);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error showing toast:', error);
+            // Fallback to alert if something goes wrong
+            window.alert(message);
+            return null;
         }
-        
-        const toastId = `toast-${Date.now()}`;
-        
-        const toast = document.createElement('div');
-        toast.id = toastId;
-        toast.className = `toast align-items-center text-white bg-${type} border-0 shadow-lg`;
-        toast.role = 'alert';
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-        toast.style.minWidth = '300px';
-        
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas fa-${this.getToastIcon(type)} me-2"></i>
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        `;
-        
-        toastContainer.appendChild(toast);
-        
-        const bsToast = new bootstrap.Toast(toast, {
-            autohide: true,
-            delay: 4000
-        });
-        
-        bsToast.show();
-        
-        // Remove the toast after it's hidden
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
-        });
     }
     
     getToastIcon(type) {
@@ -1160,48 +1500,129 @@ window.TransactionManager = class TransactionManager {
     
     // Show notification toast
     showNotificationToast(notification) {
-        const toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) return;
-        
-        const toastId = `toast-${Date.now()}`;
-        const toast = document.createElement('div');
-        toast.id = toastId;
-        toast.className = 'toast align-items-center text-white bg-primary border-0';
-        toast.role = 'alert';
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-    
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    <strong>${notification.title}</strong><br>
-                    ${notification.message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        `;
-        
-        toastContainer.appendChild(toast);
-        
-        // Initialize and show the toast
-        const bsToast = new bootstrap.Toast(toast, {
-            autohide: true,
-            delay: 5000
-        });
-        
-        bsToast.show();
-        
-        // Remove the toast after it's hidden
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
-        });
-        
-        // Click handler to navigate to transaction
-        toast.addEventListener('click', () => {
-            this.showTransactionDetails(notification.transactionId);
-            bsToast.hide();
-        });
+        try {
+            // Create a safe reference to 'this' for use in callbacks
+            const self = this;
+            
+            // Get or create toast container
+            let toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
+                toastContainer.style.zIndex = '9999';
+                toastContainer.style.marginTop = '70px';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toastId = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = 'toast align-items-center text-white bg-primary border-0';
+            toast.role = 'alert';
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.style.minWidth = '300px';
+            
+            // Create toast content using DOM methods instead of innerHTML
+            const toastDiv = document.createElement('div');
+            toastDiv.className = 'd-flex';
+            
+            const toastBody = document.createElement('div');
+            toastBody.className = 'toast-body';
+            
+            // Add title
+            if (notification.title) {
+                const titleEl = document.createElement('strong');
+                titleEl.textContent = notification.title;
+                toastBody.appendChild(titleEl);
+                
+                // Add line break if there's a message
+                if (notification.message) {
+                    toastBody.appendChild(document.createElement('br'));
+                }
+            }
+            
+            // Add message
+            if (notification.message) {
+                const messageEl = document.createElement('div');
+                messageEl.textContent = notification.message;
+                toastBody.appendChild(messageEl);
+            }
+            
+            // Add close button
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+            closeButton.setAttribute('data-bs-dismiss', 'toast');
+            closeButton.setAttribute('aria-label', 'Close');
+            
+            // Assemble toast
+            toastDiv.appendChild(toastBody);
+            toastDiv.appendChild(closeButton);
+            toast.appendChild(toastDiv);
+            
+            // Add to container
+            toastContainer.appendChild(toast);
+            
+            // Initialize Bootstrap toast
+            if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                const toastOptions = {
+                    autohide: true,
+                    delay: 5000
+                };
+                
+                const bsToast = new bootstrap.Toast(toast, toastOptions);
+                
+                // Add click handler for transaction navigation if transactionId exists
+                if (notification.transactionId) {
+                    toast.style.cursor = 'pointer';
+                    const clickHandler = function() {
+                        if (typeof self.showTransactionDetails === 'function') {
+                            self.showTransactionDetails(notification.transactionId);
+                        }
+                        bsToast.hide();
+                    };
+                    toast.addEventListener('click', clickHandler);
+                }
+                
+                // Handle toast removal after hide
+                const hiddenHandler = function() {
+                    if (toast && toast.parentNode === toastContainer) {
+                        toastContainer.removeChild(toast);
+                        // Clean up event listeners
+                        toast.removeEventListener('hidden.bs.toast', hiddenHandler);
+                        if (notification.transactionId) {
+                            toast.removeEventListener('click', clickHandler);
+                        }
+                    }
+                };
+                
+                toast.addEventListener('hidden.bs.toast', hiddenHandler);
+                
+                // Show the toast
+                bsToast.show();
+                
+                return bsToast;
+            } else {
+                console.warn('Bootstrap Toast not available, using fallback');
+                // Fallback: Auto-remove after delay
+                setTimeout(() => {
+                    if (toast.parentNode === toastContainer) {
+                        toastContainer.removeChild(toast);
+                    }
+                }, 5000);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error showing notification toast:', error);
+            // Fallback to simple alert if something goes wrong
+            if (notification && notification.message) {
+                window.alert(notification.message);
+            }
+            return null;
+        }
     }
 
     // Show success message
@@ -1237,6 +1658,477 @@ window.TransactionManager = class TransactionManager {
             'cancelled': 'Cancelled'
         };
         return statusMap[status] || status;
+    }
+
+    /**
+     * Initialize the rating section in the transaction details modal
+     * @param {Object} transaction - The transaction object
+     */
+    async initializeRatingSection(transaction) {
+        try {
+            const ratingSectionId = `ratingSection-${transaction.id}`;
+            console.log('Initializing rating section for transaction:', transaction.id);
+
+            // Verify the rating section exists in the DOM
+            const ratingSection = document.getElementById(ratingSectionId);
+            if (!ratingSection) {
+                console.error(`Rating section not found in DOM: ${ratingSectionId}`);
+                // Try to add it again
+                const newSection = this.addRatingSection(transaction, true);
+                if (!newSection) return;
+            }
+
+            // Set up the star rating UI
+            this.setupStarRating(transaction.id);
+
+            // Try to load existing rating
+            try {
+                const response = await fetch(`/api/ratings/transaction/${transaction.id}`, {
+                    method: 'GET',
+                    headers: this.getAuthHeaders()
+                });
+
+                if (response.status === 404) {
+                    console.log('No existing rating found, ready for new rating');
+                    return; // No rating exists yet, which is fine
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const ratingData = await response.json();
+                this.updateRatingUI(transaction, ratingData);
+
+            } catch (error) {
+                if (!error.message.includes('404')) {
+                    console.error('Error fetching rating:', error);
+                }
+            }
+
+        } catch (error) {
+            console.error('Error in initializeRatingSection:', error);
+        }
+    }
+
+    setupNewRating(transaction, ratingSection) {
+        if (!ratingSection) return;
+
+        // Reset any existing stars and text
+        const stars = ratingSection.querySelectorAll('.star');
+        const ratingText = ratingSection.querySelector(`#ratingText-${transaction.id}`);
+
+        if (stars && ratingText) {
+            stars.forEach(star => {
+                star.className = 'far fa-star star';
+                star.style.color = ''; // Reset color
+            });
+            ratingText.textContent = '0/5';
+            ratingText.style.color = '';
+        }
+
+        // Set up event listeners for the stars
+        this.setupStarRating(transaction.id);
+    }
+
+    setupStarRating(transactionId) {
+
+        const transaction = this.currentTransaction;
+        if (!transaction) {
+            console.error('Transaction not available for rating');
+            return;
+        }
+
+        const stars = document.querySelectorAll(`#ratingStars-${transactionId} .star`);
+        const ratingText = document.getElementById(`ratingText-${transactionId}`);
+        const submitButton = document.getElementById(`submitRating-${transactionId}`);
+        const commentInput = document.getElementById(`ratingComment-${transactionId}`);
+
+        if (!stars.length || !ratingText || !submitButton) {
+            console.error('Required rating elements not found');
+            return;
+        }
+
+        let selectedRating = 0;
+
+        // Update stars display
+        const updateStars = (rating, isHover = false) => {
+            stars.forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                star.className = starRating <= rating ? 'fas fa-star star' : 'far fa-star star';
+                star.style.color = starRating <= rating ? '#ffc107' : '';
+            });
+            ratingText.textContent = `${rating}/5`;
+        };
+
+        // Star click handler
+        const onStarClick = (e) => {
+            selectedRating = parseInt(e.currentTarget.getAttribute('data-rating'));
+            updateStars(selectedRating);
+        };
+
+        // Star hover handlers
+        const onStarHover = (e) => {
+            const rating = parseInt(e.currentTarget.getAttribute('data-rating'));
+            updateStars(rating, true);
+        };
+
+        const onStarHoverOut = () => {
+            updateStars(selectedRating);
+        };
+
+        // Add event listeners
+        stars.forEach(star => {
+            star.addEventListener('click', onStarClick);
+            star.addEventListener('mouseover', onStarHover);
+            star.addEventListener('mouseout', onStarHoverOut);
+        });
+
+        // Submit handler
+        const onSubmit = async () => {
+            console.log('Transaction object:', JSON.stringify(transaction, null, 2));
+
+            if (selectedRating === 0) {
+                alert('Please select a rating before submitting');
+                return;
+            }
+
+            try {
+                if (!transaction) {
+                    throw new Error('Transaction details not available');
+                }
+
+                // Get current user ID and ensure it's a number
+                const currentUser = this.getCurrentUser();
+                if (!currentUser || !currentUser.id) {
+                    console.error('Current user not found or invalid');
+                    throw new Error('You must be logged in to rate this transaction');
+                }
+
+                // Convert all IDs to numbers for consistent comparison
+                const currentUserId = parseInt(currentUser.id, 10);
+                const buyerId = parseInt(transaction.buyerId, 10);
+                const sellerId = parseInt(transaction.sellerId, 10);
+
+                console.log('Current user ID:', currentUserId, 'Type:', typeof currentUserId);
+                console.log('Transaction buyer ID:', buyerId, 'Type:', typeof buyerId);
+                console.log('Transaction seller ID:', sellerId, 'Type:', typeof sellerId);
+                
+                let ratedUserId;
+
+                if (currentUserId === buyerId) {
+                    // If current user is the buyer, rate the seller
+                    ratedUserId = sellerId;
+                    console.log('Rated seller with ID:', ratedUserId);
+                } else if (currentUserId === sellerId) {
+                    // If current user is the seller, rate the buyer
+                    ratedUserId = buyerId;
+                    console.log('Rated buyer with ID:', ratedUserId);
+                } else {
+                    console.error('Current user is not authorized to rate this transaction');
+                    throw new Error('You are not authorized to rate this transaction');
+                }
+
+                // Ensure we have a valid numeric ID
+                if (isNaN(ratedUserId) || ratedUserId <= 0) {
+                    throw new Error(`Invalid user ID format: ${ratedUserId}`);
+                }
+
+                // Prepare the rating data with all required fields
+                const ratingData = {
+                    transactionId: Number(transaction.id),  // Include transactionId in the request body
+                    ratedUserId: ratedUserId,
+                    score: Number(selectedRating),
+                    comment: (commentInput?.value || '').trim()
+                };
+
+                console.log('Submitting rating with data:', ratingData);
+
+                // Use the transaction-specific rating endpoint
+                const response = await fetch(`/api/ratings/transaction/${transaction.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...this.getAuthHeaders()
+                    },
+                    body: JSON.stringify(ratingData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error || 'Failed to submit rating');
+                }
+
+                const result = await response.json();
+                console.log('Rating submitted successfully:', result);
+                alert('Thank you for your rating!');
+
+                // Disable the form after successful submission
+                stars.forEach(star => {
+                    star.removeEventListener('click', onStarClick);
+                    star.removeEventListener('mouseover', onStarHover);
+                    star.removeEventListener('mouseout', onStarHoverOut);
+                    star.style.cursor = 'default';
+                });
+
+                submitButton.disabled = true;
+                if (commentInput) commentInput.disabled = true;
+
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+                alert(`Failed to submit rating: ${error.message}`);
+            }
+        };
+
+        // Add submit listener
+        submitButton.addEventListener('click', onSubmit);
+    }
+
+    /**
+     * Update the rating UI based on existing rating
+     * @param {number} transactionId - The ID of the transaction being rated
+     * @param {Object|null} rating - The existing rating or null if none exists
+     */
+    updateRatingUI(transactionId, rating) {
+        const ratingSection = document.getElementById(`ratingSection-${transactionId}`);
+        if (!ratingSection) {
+            console.error('Rating section not found for transaction:', transactionId);
+            return;
+        }
+        
+        const existingRatingEl = ratingSection.querySelector('.existing-rating');
+        const ratingStarsEl = ratingSection.querySelector('.rating-stars');
+        const rateButton = ratingSection.querySelector('.rate-transaction-btn');
+        
+        if (!existingRatingEl || !ratingStarsEl || !rateButton) {
+            console.error('Rating UI elements not found in section:', ratingSection);
+            return;
+        }
+        
+        if (rating) {
+            // Show existing rating
+            existingRatingEl.classList.remove('d-none');
+            ratingStarsEl.style.display = 'none';
+            rateButton.style.display = 'none';
+            
+            // Update the stars in the existing rating display
+            const starsContainer = existingRatingEl.querySelector('.text-warning');
+            if (starsContainer) {
+                starsContainer.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const star = document.createElement('i');
+                    star.className = i < rating.rating ? 'fas fa-star' : 'far fa-star';
+                    star.style.color = '#ffc107';
+                    star.style.marginRight = '2px';
+                    starsContainer.appendChild(star);
+                }
+                
+                // Add the rating value as text
+                const ratingText = document.createTextNode(` (${rating.rating}/5)`);
+                starsContainer.appendChild(ratingText);
+            }
+        } else {
+            // Show rating input (no existing rating)
+            existingRatingEl.classList.add('d-none');
+            ratingStarsEl.style.display = 'block';
+            rateButton.style.display = 'block';
+            
+            // Reset star highlighting
+            const stars = ratingStarsEl.querySelectorAll('.fa-star');
+            this.highlightStars(stars, 0);
+        }
+    }
+
+    /**
+     * Set up event listeners for the rating functionality
+     * @param {number} transactionId - The ID of the transaction being rated
+{{ ... }}
+     */
+    setupRatingEventListeners(transactionId) {
+        const ratingSection = document.getElementById(`ratingSection-${transactionId}`);
+        if (!ratingSection) return;
+        
+        const stars = ratingSection.querySelectorAll('.rating-stars .fa-star');
+        const rateButton = ratingSection.querySelector('.rate-transaction-btn');
+        const editButton = ratingSection.querySelector('.edit-rating-btn');
+        
+        if (!stars.length || !rateButton) {
+            console.error('Rating UI elements not found');
+            return;
+        }
+        
+        let selectedRating = 0;
+        let isSubmitting = false;
+        
+        // Star hover effect
+        stars.forEach(star => {
+            star.addEventListener('mouseover', () => {
+                const rating = parseInt(star.getAttribute('data-rating'));
+                this.highlightStars(stars, rating);
+            });
+            
+            star.addEventListener('click', () => {
+                selectedRating = parseInt(star.getAttribute('data-rating'));
+                this.highlightStars(stars, selectedRating);
+            });
+        });
+        
+        // Reset stars when mouse leaves the rating area
+        ratingSection.querySelector('.rating-stars').addEventListener('mouseleave', () => {
+            if (selectedRating === 0) {
+                this.highlightStars(stars, 0);
+            } else {
+                this.highlightStars(stars, selectedRating);
+            }
+        });
+        
+        // Submit rating
+        rateButton.addEventListener('click', async () => {
+            if (isSubmitting || selectedRating === 0) return;
+            
+            isSubmitting = true;
+            rateButton.disabled = true;
+            rateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+            
+            try {
+                const response = await fetch('/api/ratings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...this.getAuthHeaders()
+                    },
+                    body: JSON.stringify({
+                        transactionId,
+                        rating: selectedRating,
+                        comment: '' // You can add a comment field if needed
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    this.showSuccess('Thank you for your rating!');
+                    this.updateRatingUI(transactionId, { rating: selectedRating });
+                } else {
+                    throw new Error('Failed to submit rating');
+                }
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+                this.showError('Failed to submit rating. Please try again.');
+            } finally {
+                isSubmitting = false;
+                rateButton.disabled = false;
+                rateButton.innerHTML = '<i class="fas fa-star me-1"></i> Rate This Transaction';
+            }
+        });
+        
+        // Edit rating
+        if (editButton) {
+            editButton.addEventListener('click', () => {
+                selectedRating = 0;
+                const existingRatingEl = ratingSection.querySelector('.existing-rating');
+                if (existingRatingEl) {
+                    existingRatingEl.classList.add('d-none');
+                }
+                
+                const ratingStarsEl = ratingSection.querySelector('.rating-stars');
+                const rateButton = ratingSection.querySelector('.rate-transaction-btn');
+                
+                if (ratingStarsEl && rateButton) {
+                    ratingStarsEl.style.display = 'block';
+                    rateButton.style.display = 'block';
+                    
+                    // Reset star highlighting
+                    const stars = ratingStarsEl.querySelectorAll('.fa-star');
+                    this.highlightStars(stars, 0);
+                }
+            });
+        }
+
+        // Handle edit rating button
+        const editRatingBtn = document.getElementById('editRatingBtn');
+        if (editRatingBtn) {
+            editRatingBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showRatingModal(transactionId);
+            });
+        }
+    }
+
+    /**
+     * Highlight stars up to the given rating
+     * @param {NodeList} stars - The star elements
+     * @param {number} rating - The rating to highlight up to
+     */
+    highlightStars(stars, rating) {
+        if (!stars || !stars.length) {
+            console.warn('No stars found to highlight');
+            return;
+        }
+        
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('far');
+                star.classList.add('fas');
+            } else {
+                star.classList.remove('fas');
+                star.classList.add('far');
+            }
+        });
+    }
+
+    /**
+     * Show the rating modal
+     * @param {number} transactionId - The ID of the transaction to rate
+     * @param {number} [initialRating=0] - The initial rating to pre-select
+     */
+    showRatingModal(transactionId, initialRating = 0) {
+        // Use the global ratingModal if available, otherwise fall back to a simple prompt
+        if (window.ratingModal) {
+            window.ratingModal.show(transactionId);
+        } else {
+            this.showRatingPrompt(transactionId, initialRating);
+        }
+    }
+
+    /**
+     * Fallback method to show a simple rating prompt if the modal isn't available
+     * @param {number} transactionId - The ID of the transaction to rate
+     * @param {number} initialRating - The initial rating to pre-select
+     */
+    async showRatingPrompt(transactionId, initialRating = 0) {
+        // This is a simplified fallback - in a real app, you'd want to use the modal
+        const rating = prompt('Please rate this transaction (1-5 stars):', initialRating || '');
+        
+        if (rating === null) return; // User cancelled
+        
+        const score = parseInt(rating);
+        if (isNaN(score) || score < 1 || score > 5) {
+            this.showError('Please enter a valid rating between 1 and 5');
+            return;
+        }
+        
+        const comment = prompt('(Optional) Add a comment about your experience:');
+        
+        try {
+            const ratingService = window.ratingService;
+            if (!ratingService) throw new Error('Rating service not available');
+            
+            await ratingService.rateTransaction(transactionId, { 
+                score, 
+                comment: comment || '' 
+            });
+            
+            this.showSuccess('Thank you for your rating!');
+            
+            // Refresh the transaction details to show the updated rating
+            if (this.currentTransaction && this.currentTransaction.id === transactionId) {
+                this.showTransactionDetails(transactionId);
+            }
+
+        } catch (error) {
+            console.error('Error submitting rating:', error);
+            this.showError(error.message || 'Failed to submit rating');
+        }
     }
 
     // Get status badge class
@@ -1308,20 +2200,20 @@ window.TransactionManager = class TransactionManager {
             
             const descriptions = {
                 'BUY': isIncoming 
-                    ? `${otherParty} wants to buy this item`
-                    : `You requested to buy from ${otherParty}`,
+                    ? otherParty + ' wants to buy this item'
+                    : 'You requested to buy from ' + otherParty,
                 'SELL': isIncoming
-                    ? `${otherParty} wants to sell you an item`
-                    : `You offered to sell to ${otherParty}`,
+                    ? otherParty + ' wants to sell you an item'
+                    : 'You offered to sell to ' + otherParty,
                 'SWAP': isIncoming
-                    ? `${otherParty} wants to swap items with you`
-                    : `You requested to swap with ${otherParty}`,
+                    ? otherParty + ' wants to swap items with you'
+                    : 'You requested to swap with ' + otherParty,
                 'DONATION': isIncoming
-                    ? `${otherParty} requested this item as a donation`
-                    : `You requested this item as a donation`,
+                    ? otherParty + ' requested this item as a donation'
+                    : 'You requested this item as a donation',
                 'REQUEST': isIncoming
-                    ? `${otherParty} sent you an item request`
-                    : `You sent an item request to ${otherParty}`
+                    ? otherParty + ' sent you an item request'
+                    : 'You sent an item request to ' + otherParty
             };
             
             return descriptions[transactionType] || 'New transaction';
@@ -1331,27 +2223,18 @@ window.TransactionManager = class TransactionManager {
         }
     }
 
-    // Get empty state HTML
-    getEmptyState(message, icon = 'inbox') {
-        return `
-            <div class="empty-state">
-                <i class="fas fa-${icon} fa-3x mb-3"></i>
-                <p class="text-muted">${message}</p>
-            </div>
-        `;
-    }
 
     // Load and update both received and sent transaction counts
     async loadAndUpdateCounts() {
         try {
             // Fetch both received and sent transactions
             const [receivedResponse, sentResponse] = await Promise.all([
-                fetch(`${this.baseUrl}/received`, {
+                fetch(this.baseUrl + '/received', {
                     method: 'GET',
                     headers: this.getAuthHeaders(),
                     credentials: 'include'
                 }),
-                fetch(`${this.baseUrl}/sent`, {
+                fetch(this.baseUrl + '/sent', {
                     method: 'GET',
                     headers: this.getAuthHeaders(),
                     credentials: 'include'
@@ -1376,6 +2259,18 @@ window.TransactionManager = class TransactionManager {
         }
     }
 
+    // Get empty state HTML
+    getEmptyState(message, icon) {
+        // Default to 'inbox' if icon is not provided
+        icon = icon || 'inbox';
+        return [
+            '<div class="empty-state">',
+            '    <i class="fas fa-' + icon + ' fa-3x mb-3"></i>',
+            '    <p class="text-muted">' + (message || '') + '</p>',
+            '</div>'
+        ].join('\n');
+    }
+
     // Update transaction counts in the UI
     updateCounts(counts) {
         const receivedBadge = document.getElementById('receivedCount');
@@ -1386,8 +2281,21 @@ window.TransactionManager = class TransactionManager {
     }
 }
 
-// Note: TransactionManager is initialized from transactions.html
-// This ensures WebSocket libraries are loaded first
+// The initialization is now handled by transactions.html
+// This file just contains the TransactionManager class definition
+
+// Helper function to show initialization error
+function showInitializationError(message) {
+    console.error('Initialization Error:', message);
+    const errorDiv = document.getElementById('initializationError');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    } else {
+        // Fallback in case the error div doesn't exist
+        alert('Initialization Error: ' + message);
+    }
+}
 
 // Helper function to set up event listeners after TransactionManager is initialized
 window.setupTransactionEventListeners = function(transactionManager) {
@@ -1436,18 +2344,3 @@ function filterTransactions(filterType) {
     // Reload transactions with the new filter
     transactionManager.loadTransactions();
 }
-
-// Add event listeners for the filter buttons
-document.addEventListener('DOMContentLoaded', function() {
-    // Add click handlers for the filter tabs
-    document.querySelectorAll('.nav-tabs .nav-link').forEach(tab => {
-        tab.addEventListener('click', function(e) {
-            e.preventDefault();
-            const filterType = this.getAttribute('data-filter');
-            filterTransactions(filterType);
-        });
-    });
-
-    // Initialize with the default filter
-    filterTransactions('received');
-});
