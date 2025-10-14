@@ -22,6 +22,51 @@
         city: ''
     };
 
+    // Function to fetch and update user rating
+    async function updateUserRating() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.log('No authentication token found');
+                return;
+            }
+
+            console.log('Fetching user rating with token:', token.substring(0, 10) + '...');
+            const response = await fetch('/api/ratings/user-rating', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin' // Include cookies if using session-based auth
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Failed to fetch user rating: ${response.status} ${response.statusText}`, errorText);
+                return;
+            }
+            
+            const ratingData = await response.json();
+            const ratingElement = document.getElementById('rating');
+            const ratingCountElement = document.getElementById('ratingCount');
+            
+            if (ratingData.averageRating) {
+                ratingElement.textContent = parseFloat(ratingData.averageRating).toFixed(1);
+                const reviewText = ratingData.ratingCount === 1 ? 'review' : 'reviews';
+                ratingCountElement.textContent = `Based on ${ratingData.ratingCount} ${reviewText}`;
+                
+                // Update star color based on rating
+                const starIcon = document.querySelector('#rating + .ms-2 .fa-star');
+                if (starIcon) {
+                    starIcon.className = 'fas fa-star text-warning';
+                }
+            }
+        } catch (error) {
+            console.error('Error updating user rating:', error);
+        }
+    }
+
     // Function to update quick stats
     async function updateQuickStats() {
         try {
@@ -36,6 +81,9 @@
             document.getElementById('saleItems').textContent = counts.sale || 0;
             document.getElementById('wantedItems').textContent = counts.wanted || 0;
             
+            // Update user rating
+            await updateUserRating();
+            
         } catch (error) {
             console.error('Error updating quick stats:', error);
             // Don't show error to user as it's not critical
@@ -45,6 +93,10 @@
     // Initialize the page
     document.addEventListener('DOMContentLoaded', () => {
         try {
+            // Update user rating on page load if user is logged in
+            if (localStorage.getItem('token')) {
+                updateUserRating();
+            }
             // Initialize with safe defaults if elements don't exist
             if (searchInput) {
                 searchInput.value = '';

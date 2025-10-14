@@ -11,6 +11,7 @@ import com.repository.TransactionRepository;
 import com.repository.UserRepository;
 import com.service.RatingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,8 +19,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/ratings")
@@ -97,6 +101,51 @@ public class RatingController {
         return ResponseEntity.ok(hasRated);
     }
 
+    @GetMapping("/user-rating")
+    public ResponseEntity<Map<String, Object>> getCurrentUserRatingStats(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        System.out.println("Authorization Header: " + (authHeader != null ? authHeader.substring(0, Math.min(20, authHeader.length())) + "..." : "null"));
+        
+        if (userDetails == null) {
+            System.out.println("User not authenticated - userDetails is null");
+            throw new UsernameNotFoundException("User not authenticated");
+        }
+        
+        try {
+            // First try to get the user by username/email
+            String username = userDetails.getUsername();
+            System.out.println("Current username from authentication: " + username);
+            
+            // Try to find the user by username/email
+            User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+                
+            System.out.println("Found user with ID: " + user.getId());
+            
+            // Now use the user ID to get the ratings
+            Double averageRating = ratingService.getUserAverageRating(user.getId());
+            int ratingCount = ratingService.getUserRatingCount(user.getId());
+            
+            System.out.println("Average rating: " + averageRating + ", Count: " + ratingCount);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("averageRating", averageRating != null ? averageRating : 0.0);
+            response.put("ratingCount", ratingCount);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (UsernameNotFoundException e) {
+            System.out.println("User not found: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found", e);
+        } catch (Exception e) {
+            System.out.println("Error getting user rating: " + e.getMessage());
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error fetching user rating", e);
+        }
+    }
+    
     @GetMapping("/transaction/{transactionId}")
     public ResponseEntity<RatingResponse> getRatingByTransaction(@PathVariable Long transactionId) {
         RatingResponse response = ratingService.getRatingByTransaction(transactionId);
