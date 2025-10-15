@@ -4,6 +4,7 @@ import com.entity.ChatRoom;
 import com.entity.Item;
 import com.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -58,4 +59,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         @Param("chatId") Long chatId, 
         @Param("userId") Long userId
     );
+
+    @Modifying
+    @Query("DELETE FROM Message m WHERE m.chatRoom.id IN (SELECT c.id FROM ChatRoom c WHERE c.item.id = :itemId)")
+    void deleteMessagesByItemId(@Param("itemId") Long itemId);
+
+    @Modifying
+    @Query("DELETE FROM ChatRoom c WHERE c.item.id = :itemId")
+    void deleteByItemId(@Param("itemId") Long itemId);
 }

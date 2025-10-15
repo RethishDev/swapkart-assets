@@ -96,6 +96,6 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
      */
     long countByAvailable(boolean isAvailable);
 
-    @Query("SELECT COUNT(i) FROM Item i WHERE i.type = :type AND i.status = 'ACTIVE'")
+    @Query("SELECT COUNT(i) FROM Item i WHERE i.type = :type AND i.status = 'AVAILABLE'")
     long countByType(@Param("type") ItemType type);
 }

@@ -8,10 +8,13 @@ import com.dto.RegisterResponse;
 import com.entity.User;
 import com.repository.UserRepository;
 import com.service.AuthService;
+import com.service.EmailOtpService;
 import com.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import com.entity.UserRole;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -31,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
 
     @Override
     public LoginResponse authenticate(LoginRequest loginRequest) {
@@ -138,4 +143,35 @@ public class AuthServiceImpl implements AuthService {
             .city(user.getCity())
             .build();
     }
-}
+
+    @Override
+    public void sendPasswordResetEmail(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        String token = jwtService.generateToken(user.getEmail());
+        String resetLink = "http://localhost:8081/reset-password?token=" + token;
+
+        String subject = "Password Reset Request";
+        String body = "Please click the link below to reset your password:\n\n" + resetLink;
+
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("swapkart@example.com");
+        message.setTo(user.getEmail());
+        message.setSubject(subject);
+        message.setText(body);
+
+        mailSender.send(message);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        String email = jwtService.extractUsername(token);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid or expired token"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }}

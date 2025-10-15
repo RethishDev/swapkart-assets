@@ -14,13 +14,17 @@ public class ItemCountsDTO {
     @JsonProperty("donate")
     private long wanted;
 
+    @JsonProperty("activeTrades")
+    private long activeTrades;
+
     // Constructors, getters, and setters
     public ItemCountsDTO() {}
 
-    public ItemCountsDTO(long swap, long sale, long wanted) {
+    public ItemCountsDTO(long swap, long sale, long wanted, long activeTrades) {
         this.swap = swap;
         this.sale = sale;
         this.wanted = wanted;
+        this.activeTrades = activeTrades;
     }
 
     // Getters and Setters
@@ -32,4 +36,7 @@ public class ItemCountsDTO {
 
     public long getWanted() { return wanted; }
     public void setWanted(long wanted) { this.wanted = wanted; }
+    
+    public long getActiveTrades() { return activeTrades; }
+    public void setActiveTrades(long activeTrades) { this.activeTrades = activeTrades; }
 }

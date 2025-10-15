@@ -61,4 +61,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     
     @EntityGraph(attributePaths = {"item", "item.user", "buyer", "swapItem"})
     Page<Transaction> findByBuyerEmailAndStatus(String email, TransactionStatus status, Pageable pageable);
+    
+    /**
+     * Counts the number of transactions with a specific status
+     * @param status The status to filter by
+     * @return The count of transactions with the given status
+     */
+    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.status = :status")
+    long countByStatus(@Param("status") TransactionStatus status);
+
+    List<Transaction> findByItemIdOrSwapItemId(Long itemId, Long swapItemId);
+
 }

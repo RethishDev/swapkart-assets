@@ -14,4 +14,9 @@ public interface AuthService {
     void logout(HttpServletRequest request, HttpServletResponse response);
     UserDto getCurrentUser(Long userId);
     UserDto getCurrentUserByEmail(String email);
+
+    void sendPasswordResetEmail(String email);
+
+    void resetPassword(String token, String newPassword);
+
 }

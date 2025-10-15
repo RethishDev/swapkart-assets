@@ -1,12 +1,9 @@
 package com.controller;
 
-import com.dto.LoginRequest;
-import com.dto.LoginResponse;
-import com.dto.RegisterRequest;
-import com.dto.RegisterResponse;
-import com.dto.UserDto;
+import com.dto.*;
 import com.service.AuthService;
 import com.service.UserService;
+import com.service.impl.AuthServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -23,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final AuthServiceImpl authServiceImpl;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -51,5 +49,17 @@ public class AuthController {
         String username = userDetails.getUsername();
         UserDto userDto = authService.getCurrentUserByEmail(username);
         return ResponseEntity.ok(userDto);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authServiceImpl.sendPasswordResetEmail(request.getEmail());
+        return ResponseEntity.ok("Password reset email sent successfully");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(new ApiResponse<>(true, "Password reset successful", null));
     }
 }

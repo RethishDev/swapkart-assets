@@ -78,8 +78,11 @@
             
             // Update the UI with the counts
             document.getElementById('swapItems').textContent = counts.swap || 0;
-            document.getElementById('saleItems').textContent = counts.sale || 0;
-            document.getElementById('wantedItems').textContent = counts.wanted || 0;
+            document.getElementById('saleItems').textContent = counts.sell || 0;
+            document.getElementById('wantedItems').textContent = counts.donate || 0;
+            
+            // Update active trades count
+            document.getElementById('activeTrades').textContent = counts.activeTrades || 0;
             
             // Update user rating
             await updateUserRating();

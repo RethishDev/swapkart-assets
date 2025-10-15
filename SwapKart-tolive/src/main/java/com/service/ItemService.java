@@ -6,9 +6,9 @@ import com.dto.ItemResponseDto;
 import com.entity.*;
 import com.entity.ItemType;
 import com.entity.enums.ItemStatus;
+import com.entity.enums.TransactionStatus;
 import com.exception.ResourceNotFoundException;
-import com.repository.ItemRepository;
-import com.repository.UserRepository;
+import com.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +36,10 @@ public class ItemService {
 
     private final ItemRepository itemRepo;
     private final UserRepository userRepo;
+    private final TransactionRepository transactionRepo;
     private final ModelMapper modelMapper;
+    private final ChatRoomRepository chatRoomRepository;
+    private final RatingRepository ratingRepository;
 
     // Injecting value from properties
     @Value("${file.upload-dir}")
@@ -140,7 +143,34 @@ public class ItemService {
             throw new SecurityException("You are not authorized to delete this item");
         }
 
-        itemRepo.delete(item);
+        try {
+            // 1. Delete related messages first
+            chatRoomRepository.deleteMessagesByItemId(id);
+
+            // 2. Then delete chat rooms
+            chatRoomRepository.deleteByItemId(id);
+
+            // 3. Get related transactions
+            List<Transaction> transactions = transactionRepo.findByItemIdOrSwapItemId(id, id);
+            if (!transactions.isEmpty()) {
+                // 3.1 Get transaction IDs
+                List<Long> transactionIds = transactions.stream()
+                        .map(Transaction::getId)
+                        .collect(Collectors.toList());
+
+                // 3.2 Delete related ratings first
+                ratingRepository.deleteAllByTransactionIdIn(transactionIds);
+
+                // 3.3 Then delete transactions
+                transactionRepo.deleteAll(transactions);
+            }
+
+            // 4. Finally, delete the item
+            itemRepo.delete(item);
+        } catch (Exception e) {
+            log.error("Error deleting item with id: " + id, e);
+            throw new RuntimeException("Failed to delete item: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
@@ -267,22 +297,24 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ItemCountsDTO getItemCountsByType() {
         try {
             log.info("Fetching item counts by type...");
+            
+            // Get item counts by type
             long swapCount = itemRepo.countByType(ItemType.SWAP);
             long saleCount = itemRepo.countByType(ItemType.SELL);
             long donateCount = itemRepo.countByType(ItemType.DONATE);
+            
+            // Get active trades count (transactions with PENDING status)
+            long activeTrades = transactionRepo.countByStatus(TransactionStatus.PENDING);
+            
+            log.info("Counts - SWAP: {}, SELL: {}, DONATE: {}, Active Trades: {}",
+                    swapCount, saleCount, donateCount, activeTrades);
 
-            log.info("Counts - SWAP: {}, SELL: {}, DONATE: {}",
-                    swapCount, saleCount, donateCount);
-
-            // Map the counts to the DTO
-            ItemCountsDTO dto = new ItemCountsDTO();
-            dto.setSwap(swapCount);
-            dto.setSale(saleCount);  // This maps SELL to sale
-            dto.setWanted(donateCount);  // This maps DONATE to wanted
-            return dto;
+            // Create and return DTO with all counts
+            return new ItemCountsDTO(swapCount, saleCount, donateCount, activeTrades);
         } catch (Exception e) {
             log.error("Error getting item counts by type", e);
             throw new RuntimeException("Failed to get item counts by type", e);
