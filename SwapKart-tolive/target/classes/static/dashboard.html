@@ -214,9 +214,15 @@
                     return;
                 }
 
-                // Fetch current user's items count and unread notifications count
-                const [itemsResponse, notificationsResponse] = await Promise.all([
+                // Fetch current user's items count, active trades count, and unread notifications count
+                const [itemsResponse, countsResponse, notificationsResponse] = await Promise.all([
                     fetch('/api/items/my/count', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    fetch('/api/items/counts', {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
@@ -236,18 +242,22 @@
 
                 const totalItems = await itemsResponse.json();
                 let unreadCount = 0;
+                let activeTrades = 0;
 
                 if (notificationsResponse.ok) {
                     const data = await notificationsResponse.json();
                     unreadCount = data.count || 0;
                 }
+                
+                if (countsResponse.ok) {
+                    const counts = await countsResponse.json();
+                    activeTrades = counts.activeTrades || 0;
+                }
 
-                // Update the items count
+                // Update the UI with counts
                 document.getElementById('itemsCount').textContent = totalItems;
                 document.getElementById('notificationsCount').textContent = unreadCount;
-
-                // For now, keep trades count as static
-                document.getElementById('tradesCount').textContent = '0';
+                document.getElementById('tradesCount').textContent = activeTrades;
 
                 // Update recent activity
                 const recentActivity = [
