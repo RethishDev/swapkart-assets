@@ -48,15 +48,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 return Promise.reject('Session expired. Please login again.');
             }
             
-            if (!response.ok) {
-                const error = await response.json();
-                return Promise.reject(error.message || 'Something went wrong');
+            // For DELETE requests, return the response directly if no content
+            if (options.method === 'DELETE' && response.status === 204) {
+                return response;
             }
             
-            return await response.json();
+            // For other requests, parse the response as JSON
+            const data = await response.json();
+            
+            if (!response.ok) {
+                return Promise.reject(data.message || 'Something went wrong');
+            }
+            
+            return data;
         } catch (error) {
             console.error('API Error:', error);
-            showToast(error.message || 'Failed to fetch data', 'error');
+            showToast(error.message || 'Failed to process request', 'error');
             throw error;
         }
     }
@@ -413,24 +420,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update modal content
             modalBody.innerHTML = contentHtml;
             
-            // Create and add action buttons if modalButtons exists
+            // Create and add delete button if modalButtons exists
             if (modalButtons) {
-                const toggleBtn = document.createElement('button');
-                toggleBtn.className = `btn btn-${item.active ? 'outline-danger' : 'outline-success'} me-2`;
-                toggleBtn.innerHTML = `
-                    <i class="fas fa-${item.active ? 'ban' : 'check'} me-1"></i>
-                    ${item.active ? 'Disable' : 'Enable'} Item
-                `;
-                toggleBtn.onclick = () => toggleItemStatus(item.id, !item.active, true);
-                
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'btn btn-danger';
                 deleteBtn.innerHTML = '<i class="fas fa-trash me-1"></i> Delete Item';
                 deleteBtn.onclick = () => deleteItem(item.id, item.title || 'this item');
                 
-                // Clear and add buttons
+                // Clear and add button
                 modalButtons.innerHTML = '';
-                modalButtons.appendChild(toggleBtn);
                 modalButtons.appendChild(deleteBtn);
             }
             
@@ -500,15 +498,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/${itemId}`, {
-                method: 'DELETE'
+            console.log('Attempting to delete item with ID:', itemId);
+            const response = await fetch(`${API_BASE_URL}/${itemId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
             });
 
+            console.log('Delete response status:', response.status);
+            
             if (!response.ok) {
-                throw new Error('Failed to delete item');
+                let errorMessage = 'Failed to delete item';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                    console.error('Error details:', errorData);
+                } catch (e) {
+                    console.error('Failed to parse error response');
+                }
+                throw new Error(errorMessage);
             }
 
-            showToast('Item deleted successfully', 'success');
+            // Parse the successful response
+            const result = await response.json();
+            console.log('Delete successful:', result);
+            
+            showToast(result.message || 'Item deleted successfully', 'success');
             
             // Close the modal if open
             const modal = bootstrap.Modal.getInstance(document.getElementById('viewItemModal'));
@@ -520,8 +537,12 @@ document.addEventListener('DOMContentLoaded', function() {
             loadItems(currentPage, searchInput.value);
             
         } catch (error) {
-            console.error('Error deleting item:', error);
-            showToast(`Error: ${error.message || 'Failed to delete item'}`, 'error');
+            console.error('Error deleting item:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            showToast(`Error: ${error.message || 'Failed to delete item. Please try again.'}`, 'error');
         }
     }
 

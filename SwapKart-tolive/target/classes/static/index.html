@@ -1,515 +1,491 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>SwapKart - Home</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/items.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --secondary-color: #2E7D32;
-            --accent-color: #8BC34A;
-            --dark-color: #2C3E50;
-            --light-color: #ECF0F1;
-            --text-color: #333;
-            --text-light: #7F8C8D;
+          --primary-color: #4CAF50;
+          --secondary-color: #2E7D32;
+          --dark-color: #2C3E50;
+          --light-color: #f9f9f9;
+          --text-color: #333;
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+
+        * {margin:0;padding:0;box-sizing:border-box;}
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.8;
-            color: var(--text-color);
-            background-color: #f9f9f9;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.8;
+          color: var(--text-color);
+          background-color: var(--light-color);
         }
-        
+
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 20px;
         }
-        
-        /* Header Styles */
+
+        /* Header */
         .main-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 4rem 0;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+          background: linear-gradient(to right, #4CAF50, #A8E063);
+          color: white;
+          padding: 5rem 0;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
         }
-        
-        .main-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml;base64,PH0gIGh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnPz8+') no-repeat center/cover;
-            opacity: 0.1;
-            z-index: 1;
-        }
-        
-        .main-header .container {
-            position: relative;
-            z-index: 2;
-        }
-        
         .main-header h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+          font-size: 3rem;
+          margin-bottom: 1rem;
         }
-        
         .main-header p {
-            font-size: 1.2rem;
-            max-width: 700px;
-            margin: 0 auto 2rem;
-            opacity: 0.9;
+          font-size: 1.2rem;
+          max-width: 700px;
+          margin: 0 auto 2rem;
         }
-        
-        /* Button Styles */
+
+        /* Buttons */
         .btn {
-            display: inline-block;
-            padding: 12px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin: 10px;
-            text-align: center;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
+          display:inline-block;
+          padding:12px 30px;
+          border-radius:50px;
+          text-decoration:none;
+          font-weight:600;
+          transition:all 0.3s ease;
+          margin:10px;
+          border:none;
+          cursor:pointer;
+          font-size:1rem;
         }
-        
         .btn-primary {
-            background-color: white;
-            color: var(--primary-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          background-color:white;
+          color:#3498db;
+          box-shadow:0 4px 15px rgba(0,0,0,0.1);
         }
-        
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            background-color: var(--light-color);
+          transform:translateY(-3px);
+          box-shadow:0 6px 20px rgba(0,0,0,0.15);
+          background-color:#eef6ff;
         }
-        
         .btn-outline {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
+          background:transparent;
+          border:2px solid white;
+          color:white;
         }
-        
         .btn-outline:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateY(-3px);
+          background:rgba(255,255,255,0.1);
+          transform:translateY(-3px);
         }
-        
-        /* Main Content */
-        main {
-            padding: 4rem 0;
-        }
-        
+
+        /* Section titles */
         section {
-            margin-bottom: 4rem;
+          padding: 4rem 0;
         }
-        
-        h2 {
-            text-align: center;
-            margin-bottom: 2.5rem;
-            color: var(--dark-color);
-            position: relative;
-            padding-bottom: 1rem;
+        section h2 {
+          text-align:center;
+          margin-bottom:1rem;
+          font-size:2rem;
+          color: var(--dark-color);
         }
-        
-        h2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: var(--primary-color);
-            border-radius: 2px;
+        .section-subtitle {
+          text-align:center;
+          color:#666;
+          margin-bottom:3rem;
         }
-        
-        /* Features Section */
+
+        /* Features section */
         .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+          display: flex;
+          justify-content: center;
+          gap: 2rem;
+          flex-wrap: wrap;
+          margin-top: 3rem;
+          text-align: center;
         }
-        
-        .feature-card {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .feature {
+          flex: 1 1 300px;
+          max-width: 320px;
+          background: white;
+          padding: 2rem;
+          border-radius: 20px;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+          transition: transform 0.3s ease;
         }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        .feature:hover {
+          transform: translateY(-8px);
         }
-        
-        .feature-icon {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 1.5rem;
+        .feature i {
+          font-size:2rem;
+          color: var(--primary-color);
+          margin-bottom:1rem;
         }
-        
-        .feature-card h3 {
-            margin-bottom: 1rem;
-            color: var(--dark-color);
+        .feature h3 {
+          margin-bottom: 1rem;
+          font-size: 1.2rem;
+          color: var(--dark-color);
         }
-        
-        /* How It Works */
-        .steps {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-top: 3rem;
+        .feature p {
+          color:#555;
         }
-        
-        .step {
-            flex: 1;
-            min-width: 200px;
-            text-align: center;
-            padding: 0 1rem;
-            position: relative;
-            margin-bottom: 2rem;
-        }
-        
-        .step-number {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        
-        /* Author Section */
-        .author-section {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
-            padding: 4rem 0;
-            margin: 4rem 0;
-        }
-        
+
+        /* How It Works Section */
+.how-it-works {
+  background: #f9f9f9;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.how-it-works h2 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  position: relative;
+  display: inline-block;
+}
+
+.how-it-works h2::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: #27ae60;
+  margin: 0.5rem auto 0;
+  border-radius: 2px;
+}
+
+/* Steps container */
+.steps {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Each Step */
+.step {
+  flex: 1 1 220px;
+  max-width: 250px;
+  text-align: center;
+}
+
+/* Step Number Circle */
+.step-circle {
+  width: 50px;
+  height: 50px;
+  background: #27ae60;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+/* Step Text */
+.step h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.step p {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+
+        /* Author */
         .author-card {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
+          max-width: 900px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 20px;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+          padding: 3rem 2rem;
+          text-align:center;
         }
-        
-        .author-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem;
-            text-align: center;
+        .author-card img {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          margin-bottom:1rem;
         }
-        
-        .author-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid white;
-            margin: 0 auto 1rem;
-            background: #f1f1f1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: var(--dark-color);
-            overflow: hidden;
+        .author-card h3 {
+          margin-bottom:0.5rem;
+          color: var(--dark-color);
         }
-        
-        .author-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .author-name {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .author-title {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 1rem;
-        }
-        
-        .author-bio {
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .author-bio p {
-            margin-bottom: 1.5rem;
-            color: var(--text-color);
-            line-height: 1.8;
-        }
-        
         .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 1.5rem;
+          display:flex;
+          justify-content:center;
+          gap:1.5rem;
+          margin-top:1rem;
         }
-        
-        .social-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--light-color);
-            color: var(--dark-color);
-            transition: all 0.3s ease;
-            text-decoration: none;
+        .social-links a {
+          color: var(--primary-color);
+          font-size:1.3rem;
+          transition: color 0.3s ease;
         }
-        
-        .social-link:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: translateY(-3px);
+        .social-links a:hover {
+          color: var(--secondary-color);
         }
-        
+
         /* Footer */
         footer {
-            background: var(--dark-color);
-            color: white;
-            padding: 2rem 0;
-            text-align: center;
+          background: var(--dark-color);
+          color:white;
+          padding: 2rem 0;
+          margin-top: 2rem;
         }
-        
-        .footer-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        footer .footer-content {
+          max-width:1000px;
+          margin:0 auto;
+          text-align:center;
         }
-        
-        .footer-logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: white;
-            text-decoration: none;
+        footer a {
+          color:#bbb;
+          margin:0 10px;
+          text-decoration:none;
+          transition: color 0.3s ease;
         }
-        
-        .footer-links {
-            display: flex;
-            gap: 2rem;
-            margin: 1.5rem 0;
-            flex-wrap: wrap;
-            justify-content: center;
+        footer a:hover {
+          color:white;
         }
-        
-        .footer-links a {
-            color: var(--light-color);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-links a:hover {
-            color: var(--accent-color);
-        }
-        
-        .copyright {
-            margin-top: 1rem;
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .main-header h1 {
-                font-size: 2.2rem;
-            }
-            
-            .main-header p {
-                font-size: 1rem;
-            }
-            
-            .features {
-                grid-template-columns: 1fr;
-            }
-            
-            .steps {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .step {
-                margin-bottom: 2.5rem;
-            }
-            
-            .step::after {
-                content: '↓';
-                position: absolute;
-                bottom: -2rem;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 1.5rem;
-                color: var(--primary-color);
-            }
-            
-            .step:last-child::after {
-                display: none;
-            }
-        }
+        /* Developer Card */
+.developer-card {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+  overflow: hidden;
+  text-align: center;
+}
+
+/* Top green header */
+.dev-header {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  padding: 2.5rem 1rem;
+}
+.dev-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+.dev-avatar i {
+  font-size: 3rem;
+  color: #27ae60;
+}
+.dev-header h3 {
+  margin-bottom: 0.3rem;
+  font-size: 1.8rem;
+}
+.dev-role {
+  font-size: 1rem;
+  color: #ecf0f1;
+}
+.dev-role a {
+  color: #ecf0f1;
+  text-decoration: underline;
+}
+
+/* Body text */
+.dev-body {
+  padding: 2rem;
+}
+.dev-body p {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Social icons */
+.developer-card .social-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.developer-card .social-links a {
+  color: #27ae60;
+  font-size: 1.4rem;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+.developer-card .social-links a:hover {
+  color: #2ecc71;
+  transform: scale(1.2);
+}
+        /* Floating product icons */
+.floating-icons {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Prevent blocking clicks */
+  overflow: hidden;
+  z-index: 0; /* Keep behind main content */
+}
+
+.floating-icons i {
+  position: absolute;
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.25);
+  animation: floatAnim linear infinite;
+}
+
+@keyframes floatAnim {
+  from {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-10vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="main-header">
-        <div class="container">
-            <h1>Welcome to SwapKart</h1>
-            <p>Your one-stop platform for swapping, selling, and donating items in an eco-friendly way!</p>
-            <div class="cta-buttons">
-                <a href="/login" class="btn btn-primary">Get Started</a>
-                <a href="#how-it-works" class="btn btn-outline">Learn More</a>
+
+<!-- Floating Product Icons -->
+<div class="floating-icons">
+    <i class="fas fa-recycle" style="left:10%; animation-duration:18s; animation-delay:0s;"></i>
+    <i class="fas fa-tshirt" style="left:25%; animation-duration:22s; animation-delay:4s;"></i>
+    <i class="fas fa-book" style="left:40%; animation-duration:20s; animation-delay:2s;"></i>
+    <i class="fas fa-gift" style="left:60%; animation-duration:25s; animation-delay:6s;"></i>
+    <i class="fas fa-box-open" style="left:80%; animation-duration:19s; animation-delay:3s;"></i>
+    <i class="fas fa-shopping-bag" style="left:90%; animation-duration:21s; animation-delay:8s;"></i>
+</div>
+
+<!-- Header -->
+<header class="main-header">
+    <div class="container">
+        <h1>Welcome to SwapKart</h1>
+        <p>Your one-stop platform for swapping, selling, and donating items in an eco-friendly way!</p>
+        <div class="cta-buttons">
+            <a href="/login" class="btn btn-primary">Get Started</a>
+            <a href="#how-it-works" class="btn btn-outline">Learn More</a>
+        </div>
+    </div>
+</header>
+
+<!-- Features -->
+<section>
+    <div class="container">
+        <h2>Why Choose SwapKart?</h2>
+        <p class="section-subtitle">Make the most out of your unused items while helping others.</p>
+        <div class="features">
+            <div class="feature">
+                <i class="fas fa-recycle"></i>
+                <h3>Eco-Friendly</h3>
+                <p>Reduce waste and promote sustainability by giving items a second life through swapping and donating.</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h3>Save Money</h3>
+                <p>Get items you need without spending money by trading items you no longer use.</p>
+            </div>
+            <div class="feature">
+                <i class="fas fa-users"></i>
+                <h3>Community Driven</h3>
+                <p>Connect with like-minded individuals in your community who value sustainability.</p>
             </div>
         </div>
-    </header>
+    </div>
+</section>
 
-    <!-- Main Content -->
-    <main class="container">
-        <!-- Features Section -->
-        <section class="features-section">
-            <h2>Why Choose SwapKart?</h2>
-            <div class="features">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-recycle"></i>
-                    </div>
-                    <h3>Eco-Friendly</h3>
-                    <p>Reduce waste and promote sustainability by giving items a second life through swapping and donating.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-hand-holding-usd"></i>
-                    </div>
-                    <h3>Save Money</h3>
-                    <p>Get items you need without spending money by trading items you no longer use.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Community Driven</h3>
-                    <p>Connect with like-minded individuals in your community who value sustainability.</p>
-                </div>
+<!-- How It Works -->
+<section class="how-it-works">
+    <div class="container">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-circle">1</div>
+                <h3>Create an Account</h3>
+                <p>Sign up for free and create your profile to start swapping.</p>
             </div>
-        </section>
-
-        <!-- How It Works -->
-        <section id="how-it-works" class="how-it-works">
-            <h2>How It Works</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Create an Account</h3>
-                    <p>Sign up for free and create your profile to start swapping.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>List Your Items</h3>
-                    <p>Upload photos and details of items you want to swap or donate.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Browse & Connect</h3>
-                    <p>Find items you like and connect with other users to arrange a swap.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Complete the Swap</h3>
-                    <p>Meet up or ship items and enjoy your new-to-you treasures!</p>
-                </div>
+            <div class="step">
+                <div class="step-circle">2</div>
+                <h3>List Your Items</h3>
+                <p>Upload photos and details of items you want to swap or donate.</p>
             </div>
-        </section>
-
-        <!-- About the Author -->
-        <section class="author-section">
-            <div class="container">
-                <h2>About the Developer</h2>
-                <div class="author-card">
-                    <div class="author-header">
-                        <div class="author-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h3 class="author-name">Aiswarya Sunil</h3>
-                        <p class="author-title">Aspiring MCA Student @<a href="https://sjcetpalai.ac.in/" target="_blank">SJCET PALAI</a></p>
-                    </div>
-                    <div class="author-bio">
-                        <p>Hello! I'm Aiswarya Sunil, the creator of SwapKart. I developed this platform with a vision to promote sustainable living and reduce waste by making it easy for people to swap items they no longer need.</p>
-                        <p>With a passion for both technology and environmental conservation, I've combined these interests to create a solution that benefits both people and the planet.</p>
-                        <div class="social-links">
-                            <a href="mailto:aiswaryasunild@gmail.com" class="social-link" title="Email">
-                                <i class="fas fa-envelope"></i>
-                            </a>
-                            <a href="https://www.linkedin.com/in/aiswarya-sunil-a5807829b" target="_blank" class="social-link" title="LinkedIn">
-                                <i class="fab fa-linkedin-in"></i>
-                            </a>
-                            <a href="https://github.com/Aiswarya-2003" target="_blank" class="social-link" title="GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://www.instagram.com/blue_rose_.23?igsh=MXNkczZsZHBiZXB2YQ==" target="_blank" class="social-link" title="Instagram">
-                                <i class="fab fa-instagram"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+            <div class="step">
+                <div class="step-circle">3</div>
+                <h3>Browse & Connect</h3>
+                <p>Find items you like and connect with other users to arrange a swap.</p>
             </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <a href="/" class="footer-logo">SwapKart</a>
-                <p>Making sustainable living accessible to everyone</p>
-                <div class="footer-links">
-                    <a href="/about">About Us</a>
-                    <a href="/contact">Contact</a>
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/terms">Terms of Service</a>
-                    <a href="/faq">FAQ</a>
-                </div>
-                <p class="copyright">&copy; 2025 SwapKart. All rights reserved.</p>
+            <div class="step">
+                <div class="step-circle">4</div>
+                <h3>Complete the Swap</h3>
+                <p>Meet up or ship items and enjoy your new-to-you treasures!</p>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <script src="/js/script.js"></script>
+
+<!-- About the Developer -->
+<section>
+    <div class="container">
+        <h2>About the Developer</h2>
+        <div class="developer-card">
+            <div class="dev-header">
+                <div class="dev-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3>Aiswarya Sunil</h3>
+                <p class="dev-role">Aspiring MCA Student <a href="https://sjcetpalai.ac.in" target="_blank">@SJCET PALAI</a></p>
+            </div>
+            <div class="dev-body">
+                <p>
+                    Hello! I'm Aiswarya Sunil, the creator of SwapKart. I developed this platform with a vision
+                    to promote sustainable living and reduce waste by making it easy for people to swap items they no longer need.
+                </p>
+                <p>
+                    With a passion for both technology and environmental conservation, I've combined these interests
+                    to create a solution that benefits both people and the planet.
+                </p>
+                <div class="social-links">
+                    <a href="#"><i class="fas fa-envelope"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Footer -->
+<footer>
+    <div class="footer-content">
+        <p>&copy; 2025 SwapKart. All rights reserved.</p>
+        <p>
+            <a href="#">Privacy Policy</a> |
+            <a href="#">Terms of Service</a>
+        </p>
+    </div>
+</footer>
+
 </body>
 </html>
