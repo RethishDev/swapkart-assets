@@ -579,7 +579,7 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <!-- Marquee Message -->
-            <marquee behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();" style="background: linear-gradient(90deg, #4361ee, #3a0ca3); padding: 12px; border-radius: 5px; margin-bottom: 15px; color: white; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <marquee behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();" style="background: linear-gradient(90deg, #4361ee, #3a0ca3); padding: 12px; border-radius: 5px; margin-bottom: 15px; color: white; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 78%;">
                 ✨ Welcome to SwapKart! Find amazing deals on items for sale, swap, or donation • Use filters to find exactly what you need • Click on any item to see details • Message sellers directly • Happy swapping! ✨
             </marquee>
             <div class="d-flex align-items-center">
@@ -736,6 +736,18 @@
             <!-- Filter Section -->
             <div class="filter-section mb-4">
                 <div class="row g-3">
+                    <div class="heading">
+                        <h5 class="mb-0">
+                            <marquee behavior="scroll" direction="left" style="background-color: linear-gradient(90deg, #4361ee, #3a0ca3); padding: 10px; border-radius: 5px; margin-bottom: 15px; color: black; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 32.5%;">
+                                🔍 You can search items
+                            </marquee>
+                            &nbsp;&nbsp;&nbsp;
+                            <marquee behavior="scroll" direction="left" style="background-color: #4361ee; padding: 10px; border-radius: 5px; margin-bottom: 15px; color: white; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 64%;">
+                                ⭐ You can filter items as per your need at the nearest location
+                            </marquee>
+                        </h5>
+                    </div>
+
                     <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -772,6 +784,73 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Items Section Header -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="section-header text-center position-relative py-4">
+                        <span class="section-badge bg-primary bg-opacity-10 text-primary px-4 py-2 rounded-pill fw-medium mb-3 d-inline-block">
+                            <i class="fas fa-boxes me-2"></i>Our Collection
+                        </span>
+                        <h2 class="section-title display-5 fw-bold mb-3 text-gradient-primary">Discover Amazing Items</h2>
+                        <div class="d-flex align-items-center justify-content-center mb-3 position-relative">
+                            <div class="divider-line bg-gradient-primary" style="width: 100px; height: 3px; border-radius: 3px;"></div>
+                            <div class="icon-wrapper mx-4">
+                                <i class="fas fa-box-open fa-2x text-white p-3 rounded-circle bg-gradient-primary shadow"></i>
+                            </div>
+                            <div class="divider-line bg-gradient-primary" style="width: 100px; height: 3px; border-radius: 3px;"></div>
+                        </div>
+                        <p class="section-subtitle text-muted mb-0 mx-auto" style="max-width: 600px;">
+                            Browse through our exclusive collection of items available for <span class="text-primary fw-medium">swap</span>, 
+                            <span class="text-success fw-medium">purchase</span>, or 
+                            <span class="text-warning fw-medium">donation</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <style>
+                .text-gradient-primary {
+                    background: linear-gradient(45deg, #4361ee, #3f37c9);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    text-fill-color: transparent;
+                    letter-spacing: -0.5px;
+                }
+                .bg-gradient-primary {
+                    background: linear-gradient(45deg, #4361ee, #3f37c9);
+                }
+                .icon-wrapper {
+                    position: relative;
+                    z-index: 1;
+                }
+                .icon-wrapper::before {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 70px;
+                    height: 70px;
+                    background: rgba(67, 97, 238, 0.1);
+                    border-radius: 50%;
+                    z-index: -1;
+                    animation: pulse 2s infinite;
+                }
+                @keyframes pulse {
+                    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+                    50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+                    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+                }
+                .section-badge {
+                    transition: all 0.3s ease;
+                    border: 1px solid rgba(67, 97, 238, 0.2);
+                }
+                .section-badge:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.1);
+                }
+            </style>
 
             <!-- Items Grid -->
             <div class="items-grid" id="itemsGrid">
