@@ -92,6 +92,42 @@ public class RatingController {
         return ResponseEntity.ok(count);
     }
 
+    // Compatibility endpoints for frontend expecting /api/ratings/seller/* paths
+    @GetMapping("/seller/{userId}/summary")
+    public ResponseEntity<Map<String, Object>> getSellerSummary(@PathVariable Long userId) {
+        Double average = ratingService.getUserAverageRating(userId);
+        int ratingCount = ratingService.getUserRatingCount(userId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("averageRating", average != null ? average : 0.0);
+        response.put("ratingCount", ratingCount);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/seller/{userId}/reviews")
+    public ResponseEntity<List<RatingResponse>> getSellerReviews(
+            @PathVariable Long userId,
+            @RequestParam(value = "size", required = false) Integer size) {
+        List<RatingResponse> reviews = ratingService.getRatingsForUser(userId);
+        if (reviews == null) reviews = List.of();
+        if (size != null && size > 0 && reviews.size() > size) {
+            reviews = reviews.subList(0, size);
+        }
+        return ResponseEntity.ok(reviews);
+    }
+
+    // Additional compatibility endpoints expected by some frontend scripts
+    @GetMapping("/seller/{userId}/average")
+    public ResponseEntity<Double> getSellerAverage(@PathVariable Long userId) {
+        Double average = ratingService.getUserAverageRating(userId);
+        return ResponseEntity.ok(average != null ? average : 0.0);
+    }
+
+    @GetMapping("/seller/{userId}/count")
+    public ResponseEntity<Integer> getSellerRatingCount(@PathVariable Long userId) {
+        int count = ratingService.getUserRatingCount(userId);
+        return ResponseEntity.ok(count);
+    }
+
     @GetMapping("/check-rating/{ratedUserId}")
     public ResponseEntity<Boolean> hasUserRated(
             @PathVariable Long ratedUserId,
@@ -105,37 +141,37 @@ public class RatingController {
     public ResponseEntity<Map<String, Object>> getCurrentUserRatingStats(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
+
         System.out.println("Authorization Header: " + (authHeader != null ? authHeader.substring(0, Math.min(20, authHeader.length())) + "..." : "null"));
-        
+
         if (userDetails == null) {
             System.out.println("User not authenticated - userDetails is null");
             throw new UsernameNotFoundException("User not authenticated");
         }
-        
+
         try {
             // First try to get the user by username/email
             String username = userDetails.getUsername();
             System.out.println("Current username from authentication: " + username);
-            
+
             // Try to find the user by username/email
             User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
-                
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+
             System.out.println("Found user with ID: " + user.getId());
-            
+
             // Now use the user ID to get the ratings
             Double averageRating = ratingService.getUserAverageRating(user.getId());
             int ratingCount = ratingService.getUserRatingCount(user.getId());
-            
+
             System.out.println("Average rating: " + averageRating + ", Count: " + ratingCount);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("averageRating", averageRating != null ? averageRating : 0.0);
             response.put("ratingCount", ratingCount);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (UsernameNotFoundException e) {
             System.out.println("User not found: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found", e);
@@ -145,7 +181,7 @@ public class RatingController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error fetching user rating", e);
         }
     }
-    
+
     @GetMapping("/transaction/{transactionId}")
     public ResponseEntity<RatingResponse> getRatingByTransaction(@PathVariable Long transactionId) {
         RatingResponse response = ratingService.getRatingByTransaction(transactionId);
@@ -187,16 +223,16 @@ public class RatingController {
             // Verify the user is part of this transaction
             boolean isBuyer = transaction.getBuyer().getId().equals(user.getId());
             boolean isSeller = transaction.getItem().getUser().getId().equals(user.getId());
-            
+
             System.out.println("Is buyer: " + isBuyer + ", Is seller: " + isSeller);
-            
+
             if (!isBuyer && !isSeller) {
                 return ResponseEntity.badRequest().body("You are not authorized to rate this transaction");
             }
 
             // Determine who is being rated (the other party in the transaction)
             Long ratedUserId = isBuyer ? transaction.getItem().getUser().getId() : transaction.getBuyer().getId();
-            
+
             // Check if the user has already rated this transaction
             if (ratingRepository.existsByTransactionIdAndRaterId(transactionId, user.getId())) {
                 return ResponseEntity.badRequest().body("You have already rated this transaction");
@@ -210,10 +246,10 @@ public class RatingController {
             rating.setTransaction(transaction);
             rating.setScore(request.getScore());
             rating.setComment(request.getComment());
-            
+
             Rating savedRating = ratingRepository.save(rating);
             return ResponseEntity.ok(RatingResponse.fromEntity(savedRating));
-            
+
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

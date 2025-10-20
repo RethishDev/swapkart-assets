@@ -40,17 +40,17 @@
                 },
                 credentials: 'same-origin' // Include cookies if using session-based auth
             });
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error(`Failed to fetch user rating: ${response.status} ${response.statusText}`, errorText);
                 return;
             }
-            
+
             const ratingData = await response.json();
             const ratingElement = document.getElementById('rating');
             const ratingCountElement = document.getElementById('ratingCount');
-            
+
             // Use null/undefined check so 0.0 is treated as a valid rating
             if (ratingData && ratingData.averageRating != null) {
                 ratingElement.textContent = parseFloat(ratingData.averageRating).toFixed(1);
@@ -120,7 +120,7 @@
                     }
                 });
             }
-            
+
             // Load quick stats
             updateQuickStats();
 
@@ -138,7 +138,7 @@
             loadCities();
             loadItems();
             loadUnreadCount();
-            
+
             // Update quick stats every 5 minutes
             setInterval(updateQuickStats, 5 * 60 * 1000);
         } catch (error) {
@@ -275,7 +275,7 @@
         const itemsHTML = itemsArray.map(item => {
             // Check if item is disabled
             const isDisabled = item.active === 'false' || item.active === false || item.active === 'f';
-            
+
             return `
             <div class="item-card ${isDisabled ? 'item-disabled' : ''}" data-id="${item.id}">
                 <div class="position-relative">
@@ -538,7 +538,7 @@
     function showUnavailableToast() {
         const toast = document.getElementById('toast');
         const toastBody = document.getElementById('toast-body');
-        
+
         if (toast && toastBody) {
             toastBody.textContent = 'This item is currently unavailable';
             const bsToast = new bootstrap.Toast(toast);
@@ -695,10 +695,6 @@
             conditionElement.textContent = 'Condition not specified';
             conditionElement.className = 'text-muted';
         }
-
-        // Set seller information from the item data
-       // const sellerElement = document.getElementById('itemDetailSeller');
-        //const sellerEmailElement = document.getElementById('itemDetailSellerEmail');
 
         if (!sellerElement || !sellerEmailElement) {
             console.error('Required seller elements not found in the DOM');
@@ -861,7 +857,7 @@
                         <form id="donationRequestForm">
                             <div class="mb-3">
                                 <label for="reason" class="form-label">Why do you need this item?</label>
-                                <textarea class="form-control" id="reason" rows="3" required 
+                                <textarea class="form-control" id="reason" rows="3" required
                                     placeholder="Please explain how you'll use this item..."></textarea>
                             </div>
                             <div class="mb-3">
@@ -889,10 +885,10 @@
 
         // Add modal to body
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
+
         // Initialize modal
         const modal = new bootstrap.Modal(document.getElementById('donationRequestModal'));
-        
+
         // Handle form submission
         document.getElementById('submitDonationRequest').addEventListener('click', async () => {
             await submitDonationRequest(item.id, modal);
@@ -907,13 +903,13 @@
         const submitBtn = document.getElementById('submitDonationRequest');
         const spinner = submitBtn.querySelector('.spinner-border');
         const btnText = submitBtn.querySelector('.btn-text');
-        
+
         try {
             // Show loading state
             submitBtn.disabled = true;
             spinner.classList.remove('d-none');
             btnText.textContent = 'Submitting...';
-            
+
             const requestData = {
                 itemId: itemId,
                 reason: document.getElementById('reason').value,
@@ -938,7 +934,7 @@
 
             // Show success message
             showToast('Donation request submitted successfully! The owner will contact you soon.', 'success');
-            
+
             // Close modal after delay
             setTimeout(() => {
                 modal.hide();
@@ -1035,7 +1031,7 @@
                 .then(response => response.ok ? response.json() : Promise.reject('Failed to load conversations'))
                 .then(conversations => {
                     // Try to find an existing conversation with this seller
-                    const existingChat = conversations.find(conv => 
+                    const existingChat = conversations.find(conv =>
                         conv.participants && conv.participants.some(p => p.id === participantId)
                     );
 
@@ -1053,7 +1049,7 @@
                     }
 
                     console.log('Creating new chat room with:', { participantId, itemId: numericItemId });
-                    
+
                     return fetch(url, {
                         method: 'POST',
                         headers: {
@@ -1077,7 +1073,7 @@
                 .then(chat => {
                     clearTimeout(revertButton);
                     console.log('Chat started successfully:', chat);
-                    
+
                     // Close any open modals
                     const modals = document.querySelectorAll('.modal');
                     modals.forEach(modal => {
@@ -1099,7 +1095,7 @@
                 .catch(error => {
                     console.error('Error in chat process:', error);
                     showError(error.message || 'Failed to start chat. Please try again.');
-                    
+
                     // Re-enable the button
                     messageBtn.disabled = false;
                     messageBtn.innerHTML = originalText;
@@ -1421,7 +1417,7 @@
                                 <div class="mb-3">
                                     <label for="contactNumber" class="form-label">Contact Number <span class="text-danger">*</span></label>
                                     <input type="tel" class="form-control" id="contactNumber" required
-                                        placeholder="Your contact number" 
+                                        placeholder="Your contact number"
                                         pattern="[0-9]{10,15}"
                                         title="Please enter a valid phone number (10-15 digits)">
                                     <div class="invalid-feedback">
@@ -1475,7 +1471,7 @@
 
         submitButton.addEventListener('click', async (e) => {
             e.preventDefault();
-            
+
             // Check form validity
             if (!buyForm.checkValidity()) {
                 buyForm.classList.add('was-validated');
@@ -1595,7 +1591,7 @@
 
         submitButton.addEventListener('click', async (e) => {
             e.preventDefault();
-            
+
             // Check form validity
             if (!requestForm.checkValidity()) {
                 requestForm.classList.add('was-validated');
@@ -1657,27 +1653,27 @@
                     </div>
                 </div>
             </div>`;
-            
+
         // Remove any existing modals to prevent duplicates
         const existingModal = document.getElementById('swapModal');
         if (existingModal) {
             existingModal.remove();
         }
-        
+
         // Add the modal to the DOM
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
+
         // Initialize the modal
         const modalElement = document.getElementById('swapModal');
         const modal = new bootstrap.Modal(modalElement);
-        
+
         // Load user's items for swap
         loadUserItemsForSwap(item);
-        
+
         // Show the modal
         modal.show();
     }
-    
+
     // Show add item prompt
     function showAddItemPrompt() {
         const swapContent = document.getElementById('swapContent');
@@ -1714,10 +1710,10 @@
                         <div class="list-group">
                             ${items.map(item => `
                                 <label class="list-group-item d-flex gap-3">
-                                    <input class="form-check-input flex-shrink-0" type="radio" 
+                                    <input class="form-check-input flex-shrink-0" type="radio"
                                            name="swapItem" value="${item.id}" style="margin-top: 0.2rem;">
                                     <div class="d-flex gap-2 w-100">
-                                        <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZWVlIi8+PC9zdmc+'}" 
+                                        <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZWVlIi8+PC9zdmc+'}"
                                              alt="${item.title}" width="60" height="60" style="object-fit: cover; border-radius: 4px;">
                                         <div>
                                             <h6 class="mb-0">${item.title}</h6>
@@ -1738,7 +1734,7 @@
                 <div class="col-md-6">
                     <h6>Item You Want</h6>
                     <div class="card h-100">
-                        <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=='}" 
+                        <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPjwvc3ZnPg=='}"
                              class="card-img-top" alt="${item.title}" style="height: 150px; object-fit: cover;">
                         <div class="card-body">
                             <h6 class="card-title">${item.title}</h6>
@@ -1754,7 +1750,7 @@
             <form id="swapForm" class="mt-4 needs-validation" novalidate>
                 <div class="mb-3">
                     <label for="swapMessage" class="form-label">Message to the Owner</label>
-                    <textarea class="form-control" id="swapMessage" rows="3" 
+                    <textarea class="form-control" id="swapMessage" rows="3"
                         placeholder="Add a message for the owner (optional)" maxlength="500"></textarea>
                     <div class="form-text text-end"><span id="swapMessageCounter">0</span>/500</div>
                 </div>
@@ -1805,7 +1801,7 @@
         if (submitButton && swapForm) {
             submitButton.addEventListener('click', async (e) => {
                 e.preventDefault();
-                
+
                 if (!swapForm.checkValidity()) {
                     swapForm.classList.add('was-validated');
                     return;
@@ -1898,7 +1894,7 @@
 
             const data = await response.json();
             console.log('API Response:', data);
-            
+
             // Handle different response formats
             let items = [];
             if (Array.isArray(data)) {
@@ -1915,13 +1911,13 @@
                 console.error('Unexpected API response format:', data);
                 throw new Error('Unexpected response format from server');
             }
-            
+
             console.log('Extracted items:', items);
-            
+
             // Filter out the current item if it's in the list
             const filteredItems = items.filter(item => item && item.id && item.id !== targetItem.id);
             console.log('Filtered items:', filteredItems);
-            
+
             if (filteredItems.length === 0) {
                 showAddItemPrompt();
             } else {

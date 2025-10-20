@@ -40,9 +40,11 @@ public class RatingResponse {
     }
 
     private static String getDisplayName(com.entity.User user) {
-        if (user.getName() != null && user.getName().trim().isEmpty()) {
+        // Return user's name if it's present and not empty; otherwise fall back to email, then Anonymous
+        if (user == null) return "Anonymous User";
+        if (user.getName() != null && !user.getName().trim().isEmpty()) {
             return user.getName();
         }
-        return user.getEmail() != null ? user.getEmail() : "Anonymous User";
+        return user.getEmail() != null && !user.getEmail().trim().isEmpty() ? user.getEmail() : "Anonymous User";
     }
 }

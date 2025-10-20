@@ -46,7 +46,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Fetch seller's average rating
 function fetchSellerRating(sellerId) {
-    fetch(`/api/ratings/seller/${sellerId}/average`)
+    // Use compatibility endpoint added on the server: /api/ratings/seller/{id}/summary
+    fetch(`/api/ratings/seller/${sellerId}/summary`)
         .then(response => {
             if (!response.ok) {
                 if (response.status === 404) {
@@ -54,48 +55,105 @@ function fetchSellerRating(sellerId) {
                     updateRatingUI(0, 0);
                     return null;
                 }
-                throw new Error('Failed to fetch seller rating');
+                throw new Error('Failed to fetch seller rating summary');
             }
             return response.json();
         })
         .then(data => {
             if (data) {
-                updateRatingUI(data.averageRating, data.totalRatings);
+                // summary returns { averageRating, ratingCount }
+                const avg = data.averageRating != null ? data.averageRating : 0;
+                const count = data.ratingCount != null ? data.ratingCount : 0;
+                updateRatingUI(avg, count);
             }
         })
         .catch(error => {
-            console.error('Error fetching seller rating:', error);
+            console.error('Error fetching seller rating summary:', error);
             // Show default state on error
             updateRatingUI(0, 0);
         });
+
+    // Also fetch recent reviews (limit to 5)
+    fetch(`/api/ratings/seller/${sellerId}/reviews?size=5`)
+        .then(res => res.ok ? res.json() : [])
+        .then(reviews => {
+            const sellerReviewsListEl = document.getElementById('sellerReviewsList');
+            if (!sellerReviewsListEl) return;
+            if (!reviews || reviews.length === 0) {
+                sellerReviewsListEl.innerHTML = '<div class="text-muted small">No reviews yet.</div>';
+                return;
+            }
+            // Build reviews HTML similar to items.js
+            function escapeHtml(str) {
+                if (str == null) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            function renderStarsInlineHtml(rating) {
+                const max = 5;
+                const r = Number(rating) || 0;
+                let out = '';
+                for (let i = 1; i <= max; i++) {
+                    if (r >= i) out += '<i class="fas fa-star text-warning"></i>';
+                    else if (r >= i - 0.5) out += '<i class="fas fa-star-half-alt text-warning"></i>';
+                    else out += '<i class="far fa-star text-warning"></i>';
+                }
+                return out;
+            }
+
+            sellerReviewsListEl.innerHTML = reviews.map(r => {
+                const reviewer = r.reviewerName || r.userName || r.name || (r.rater && r.rater.name) || 'User';
+                const rating = r.score || r.rating || r.stars || 0;
+                const comment = r.comment || r.text || r.message || '';
+                const date = r.createdAt || r.date || r.postedAt || r.timestamp || '';
+                const dateStr = date ? new Date(date).toLocaleDateString() : '';
+                return `
+                    <div class="border rounded p-2 mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-bold small">${escapeHtml(reviewer)}</div>
+                            <div class="small text-warning">${renderStarsInlineHtml(rating)}</div>
+                        </div>
+                        <div class="small text-muted">${escapeHtml(comment)}</div>
+                        <div class="small text-muted mt-1">${dateStr}</div>
+                    </div>`;
+            }).join('');
+        })
+        .catch(err => console.error('Error fetching seller reviews:', err));
 }
 
 // Update the rating UI with the average rating
 function updateRatingUI(averageRating, totalRatings) {
-    const starContainer = document.querySelector('.star-rating-average');
-    const averageRatingElement = document.querySelector('.average-rating');
-    const ratingCountElement = document.querySelector('.rating-count');
-    
-    if (!starContainer || !averageRatingElement || !ratingCountElement) return;
-    
-    // Update average rating
-    averageRatingElement.textContent = averageRating.toFixed(1);
-    ratingCountElement.textContent = `(${totalRatings} ${totalRatings === 1 ? 'rating' : 'ratings'})`;
-    
-    // Update star display
-    const stars = starContainer.querySelectorAll('i');
-    stars.forEach((star, index) => {
-        if (index < Math.floor(averageRating)) {
-            star.classList.remove('fa-star-o', 'fa-star-half-o');
-            star.classList.add('fa-star');
-        } else if (index < Math.ceil(averageRating)) {
-            star.classList.remove('fa-star-o', 'fa-star');
-            star.classList.add('fa-star-half-o');
-        } else {
-            star.classList.remove('fa-star', 'fa-star-half-o');
-            star.classList.add('fa-star-o');
+    // Use the element IDs used in items.html
+    const averageRatingElement = document.getElementById('sellerAverageRating');
+    const ratingCountElement = document.getElementById('sellerReviewCount');
+    const starContainer = document.getElementById('sellerStars');
+
+    const avg = averageRating != null ? Number(averageRating) : 0;
+    const count = totalRatings != null ? Number(totalRatings) : 0;
+
+    if (averageRatingElement) {
+        averageRatingElement.textContent = isNaN(avg) ? '-' : avg.toFixed(1);
+    }
+    if (ratingCountElement) {
+        ratingCountElement.textContent = `(${count} ${count === 1 ? 'review' : 'reviews'})`;
+    }
+
+    // Render stars into sellerStars container
+    if (starContainer) {
+        starContainer.innerHTML = '';
+        const max = 5;
+        for (let i = 1; i <= max; i++) {
+            const iEl = document.createElement('i');
+            if (avg >= i) iEl.className = 'fas fa-star text-warning me-1';
+            else if (avg >= i - 0.5) iEl.className = 'fas fa-star-half-alt text-warning me-1';
+            else iEl.className = 'far fa-star text-warning me-1';
+            starContainer.appendChild(iEl);
         }
-    });
+    }
 }
 
 // Initialize rating stars hover effect
