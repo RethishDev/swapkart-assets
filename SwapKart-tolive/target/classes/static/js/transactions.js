@@ -669,6 +669,26 @@ window.TransactionManager = class TransactionManager {
         };
     }
 
+    // Helper: fetch item details by id (returns null on failure)
+    async fetchItemDetails(itemId) {
+        if (!itemId) return null;
+        try {
+            const response = await fetch(`/api/items/${itemId}`, {
+                headers: this.getAuthHeaders(),
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                console.warn('Failed to fetch item details for id', itemId, response.status);
+                return null;
+            }
+            const item = await response.json();
+            return item;
+        } catch (error) {
+            console.error('Error fetching item details for id', itemId, error);
+            return null;
+        }
+    }
+
     // Render transaction details in modal
     renderTransactionDetails(transaction) {
 
@@ -703,7 +723,7 @@ window.TransactionManager = class TransactionManager {
         const ratingSectionId = `ratingSection-${transaction.id}`;
 
         if (shouldShowRating) {
-            console.log('Adding rating section for sent and accepted transaction');
+            console.log('Adding rating section to sent and accepted transaction');
 
             // First add the rating section to the DOM
             const ratingSection = this.addRatingSection(transaction, shouldShowRating);
@@ -889,7 +909,12 @@ window.TransactionManager = class TransactionManager {
                                 <h6>Date:</h6>
                                 <p>${this.formatDate(transaction.createdAt, true)}</p>
                             </div>
-                            
+
+                            <!-- Swap item placeholder: will be populated if buyer offered an item -->
+                            <div id="swapItemSection-${transaction.id}" class="mb-3">
+                                <!-- swap item will be injected here if present -->
+                            </div>
+
                             <!-- Rating Section (only show for completed/accepted transactions where current user is buyer) -->
                             ${(transaction.status === 'ACCEPTED' || transaction.status === 'COMPLETED') && 
                               this.currentUser && this.currentUser.id === transaction.buyerId ? `
@@ -927,6 +952,77 @@ window.TransactionManager = class TransactionManager {
                 </div>
             </div>
         `;
+
+            // Inject swap item details if available
+            (async () => {
+                try {
+                    const swapContainer = document.getElementById(`swapItemSection-${transaction.id}`);
+                    if (!swapContainer) return;
+
+                    // If transaction has swapItemName or swapItemId, try to show it
+                    if (transaction.swapItemId || transaction.swapItemName) {
+                        // Show a loading placeholder
+                        swapContainer.innerHTML = `
+                            <h6>Buyer's offered item for swap:</h6>
+                            <div class="text-center py-3" id="swapLoading-${transaction.id}">
+                                <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Loading...</span></div>
+                            </div>
+                        `;
+
+                        let swapItem = null;
+
+                        // Prefer using swapItemName from response; if missing, fetch full item details
+                        if (transaction.swapItemName && !transaction.swapItemId) {
+                            // Only a name available
+                            swapItem = { id: null, title: transaction.swapItemName, imageUrls: [], description: '' };
+                        } else if (transaction.swapItemId) {
+                            // Try to fetch item details; fall back to swapItemName if fetch fails
+                            const fetched = await this.fetchItemDetails(transaction.swapItemId);
+                            if (fetched) {
+                                // Normalize to expected fields
+                                swapItem = {
+                                    id: fetched.id,
+                                    title: fetched.title || fetched.name || transaction.swapItemName || 'Offered item',
+                                    imageUrls: fetched.imageUrls || (fetched.image ? [fetched.image] : []),
+                                    description: fetched.description || fetched.itemDescription || ''
+                                };
+                            } else {
+                                // Fallback to swapItemName if provided
+                                swapItem = { id: transaction.swapItemId, title: transaction.swapItemName || 'Offered item', imageUrls: [], description: '' };
+                            }
+                        }
+
+                        // Build HTML
+                        const swapHtml = `
+                            <h6>Buyer's offered item for swap:</h6>
+                            <div class="card">
+                                <div class="row g-0 align-items-center">
+                                    <div class="col-auto p-3">
+                                        <img src="${(swapItem && swapItem.imageUrls && swapItem.imageUrls.length>0) ? swapItem.imageUrls[0] : '/images/default-item.svg'}"
+                                             alt="${swapItem ? swapItem.title : 'Swap item'}" style="width:100px; height:100px; object-fit:cover;">
+                                    </div>
+                                    <div class="col">
+                                        <div class="card-body py-2">
+                                            <h6 class="card-title mb-1">${swapItem ? this.escapeHtml(swapItem.title) : 'Offered item'}</h6>
+                                            <p class="card-text small text-muted mb-0">${swapItem ? this.escapeHtml(swapItem.description || '') : ''}</p>
+                                            ${swapItem && swapItem.id ? `<div class="mt-2"><a href="/item-details.html?id=${swapItem.id}" target="_blank" class="btn btn-sm btn-outline-secondary">View item</a></div>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        swapContainer.innerHTML = swapHtml;
+                    } else {
+                        // No swap item offered; clear placeholder
+                        swapContainer.innerHTML = '';
+                    }
+                } catch (err) {
+                    console.error('Error injecting swap item into modal:', err);
+                    const swapContainer = document.getElementById(`swapItemSection-${transaction.id}`);
+                    if (swapContainer) swapContainer.innerHTML = '<div class="text-muted small">Failed to load offered swap item</div>';
+                }
+            })();
 
             // Add action buttons for received requests that are pending or have null status
             const isPending = transaction.status === 'PENDING' || transaction.status === 'pending' || !transaction.status;
@@ -1942,7 +2038,6 @@ window.TransactionManager = class TransactionManager {
     /**
      * Set up event listeners for the rating functionality
      * @param {number} transactionId - The ID of the transaction being rated
-{{ ... }}
      */
     setupRatingEventListeners(transactionId) {
         const ratingSection = document.getElementById(`ratingSection-${transactionId}`);
@@ -2344,3 +2439,4 @@ function filterTransactions(filterType) {
     // Reload transactions with the new filter
     transactionManager.loadTransactions();
 }
+

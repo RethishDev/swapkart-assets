@@ -20,6 +20,26 @@
             --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
+        /* Logo and Branding */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .logo img {
+            height: 2.5rem;
+            width: auto;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f5f7fb;
@@ -56,6 +76,22 @@
             width: 24px;
             text-align: center;
             margin-right: 10px;
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        @media (min-width: 992px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 250px;
+            }
+            #sidebarToggle {
+                display: none;
+            }
         }
 
         /* Main Content */
@@ -515,7 +551,7 @@
 </head>
 <body>
 <!-- Sidebar Toggle Button -->
-<button id="sidebarToggle" class="d-lg-none">
+<button id="sidebarToggle" class="btn btn-primary">
     <i class="fas fa-bars"></i>
 </button>
 
@@ -578,10 +614,15 @@
     </div>
     <!-- Top Bar -->
     <div class="top-bar">
-        <!-- Marquee Message -->
-        <marquee behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();" style="background: linear-gradient(90deg, #4361ee, #3a0ca3); padding: 12px; border-radius: 5px; margin-bottom: 15px; color: white; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 78%;">
-            ✨ Welcome to SwapKart! Find amazing deals on items for sale, swap, or donation • Use filters to find exactly what you need • Click on any item to see details • Message sellers directly • Happy swapping! ✨
-        </marquee>
+        <div style="background: linear-gradient(90deg, #4361ee, #3a0ca3); padding: 10px; border-radius: 5px; margin-bottom: 15px; color: white; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 78%;>
+            <a href="/" class="logo">
+                <img src="https://raw.githubusercontent.com/RethishDev/swapkart-assets/main/swapkart-logo.png" alt="SwapKart Logo">
+            </a>
+            <!-- Marquee Message -->
+            <marquee behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();">
+                ✨ Welcome to SwapKart! Find amazing deals on items for sale, swap, or donation • Use filters to find exactly what you need • Click on any item to see details • Message sellers directly • Happy swapping! ✨
+            </marquee>
+        </div>
         <div class="d-flex align-items-center">
             <div class="dropdown me-3">
                 <a href="#" class="text-dark" data-bs-toggle="dropdown" aria-expanded="false">
@@ -618,12 +659,14 @@
                     <i class="fas fa-box"></i>
                 </div>
                 <div class="stats-info">
-                    <h6>Total Items</h6>
+                    <h6>Available Items</h6>
                     <h3 id="totalItemsCount">0</h3>
-                    <span class="text-muted">All items in the system</span>
+                    <span class="text-muted">Items currently available</span>
+
                 </div>
             </div>
         </div>
+
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stats-icon bg-success">
@@ -716,11 +759,11 @@
 
                 <div class="mt-4">
                     <h6 class="mb-3">Quick Stats</h6>
-                    <div class="d-flex justify-content-between mb-2">
+                    <div class="d-flex justify-content-between">
                         <span>Items for Swap:</span>
                         <strong id="swapItems">0</strong>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
+                    <div class="d-flex justify-content-between">
                         <span>Items for Sale:</span>
                         <strong id="saleItems">0</strong>
                     </div>
@@ -1160,6 +1203,7 @@
 <script src="/js/items.js"></script>
 <script src="/js/activity.js"></script>
 <script src="/js/services/transaction-service.js"></script>
+<script src="/js/init-sidebar.js"></script>
 <script>
     // Function to handle user logout
    async function handleLogout() {

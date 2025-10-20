@@ -72,6 +72,15 @@ public class Item {
     @Column(name = "active", nullable = false)
     private String active;
 
+    @Column(name = "deleted", nullable = false)
+    @Builder.Default
+    private Boolean deleted = false; // true when item has been deleted (soft-delete)
+
+    // New flag to indicate the deletion was performed by an admin
+    @Column(name = "deleted_by_admin", nullable = false)
+    @Builder.Default
+    private Boolean deletedByAdmin = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ItemStatus status = ItemStatus.AVAILABLE;

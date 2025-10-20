@@ -29,6 +29,7 @@ public class ItemResponseDto {
     private String itemCondition;
     private Double price;
     private String active;
+    private Boolean deleted;
     private String sellerName;
     private String sellerEmail;
     private String sellerPhone;
@@ -49,6 +50,7 @@ public class ItemResponseDto {
                 .itemCondition(item.getItemCondition())
                 .price(item.getPrice())
                 .active(item.getActive())
+                .deleted(item.getDeleted())
                 .sellerName(item.getUser() != null ? item.getUser().getName() : "Unknown")
                 .sellerEmail(item.getUser() != null ? item.getUser().getEmail() : "Unknown")
                 .sellerPhone(item.getUser() != null ? item.getUser().getMobile() : "Unknown")

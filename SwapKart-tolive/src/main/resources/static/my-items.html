@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>My Listings | SwapKart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/my-items.css">
     <!-- Prevent caching of the page -->
@@ -56,6 +57,17 @@
             border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+         /* Mobile Navigation */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
         }
 
         /* Navigation */
@@ -131,6 +143,14 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .page-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
 
         .page-title {
@@ -657,16 +677,17 @@
                     <label for="editCategory">Category</label>
                     <select id="editCategory" class="form-control" required>
                         <option value="">Select a category</option>
-                        <option value="Electronics">Electronics</option>
+                        <option value="Electronic">Electronic</option>
                         <option value="Furniture">Furniture</option>
                         <option value="Books">Books</option>
                         <option value="Clothing">Clothing</option>
-                        <option value="Other">Other</option>
+                        <option value="Furniture"></option>
+                        <option value="Other">Others</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="editCity">City</label>
-                    <input type="text" id="editCity" class="form-control" required>
+                    <input type="text" id="editCity" class="form-control" placeholder="eg: Kaloor, Kochi" required>
                 </div>
                 <div class="form-group">
                     <label for="editPincode">Pincode</label>

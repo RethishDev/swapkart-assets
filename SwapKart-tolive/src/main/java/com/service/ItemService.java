@@ -19,6 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -144,32 +146,36 @@ public class ItemService {
         }
 
         try {
-            // 1. Delete related messages first
-            chatRoomRepository.deleteMessagesByItemId(id);
-
-            // 2. Then delete chat rooms
-            chatRoomRepository.deleteByItemId(id);
-
-            // 3. Get related transactions
-            List<Transaction> transactions = transactionRepo.findByItemIdOrSwapItemId(id, id);
-            if (!transactions.isEmpty()) {
-                // 3.1 Get transaction IDs
-                List<Long> transactionIds = transactions.stream()
-                        .map(Transaction::getId)
-                        .collect(Collectors.toList());
-
-                // 3.2 Delete related ratings first
-                ratingRepository.deleteAllByTransactionIdIn(transactionIds);
-
-                // 3.3 Then delete transactions
-                transactionRepo.deleteAll(transactions);
-            }
-
-            // 4. Finally, delete the item
-            itemRepo.delete(item);
+            // Soft-delete the item as a user: mark deleted=true and ensure deletedByAdmin=false
+            item.setActive(String.valueOf(false));
+            item.setAvailable(false);
+            item.setDeleted(true);
+            item.setDeletedByAdmin(false);
+            itemRepo.save(item);
         } catch (Exception e) {
             log.error("Error deleting item with id: " + id, e);
             throw new RuntimeException("Failed to delete item: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Admin delete: deletes an item and dependencies without ownership checks.
+     */
+    @Transactional
+    public void deleteItemAsAdmin(Long id) {
+        Item item = itemRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Item not found with id: " + id));
+
+        try {
+            // Admin soft-delete: mark deleted=true and deletedByAdmin=true
+            item.setActive(String.valueOf(false));
+            item.setAvailable(false);
+            item.setDeleted(true);
+            item.setDeletedByAdmin(true);
+            itemRepo.save(item);
+        } catch (Exception e) {
+            log.error("Error deleting item with id: " + id, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete item: " + e.getMessage(), e);
         }
     }
 
@@ -257,7 +263,8 @@ public class ItemService {
 
     public Page<Item> getCurrentUserItems(Pageable pageable) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return itemRepo.findByUserEmail(email, pageable);
+        // Use the repository method that hides user-deleted items but includes admin-deleted ones
+        return itemRepo.findVisibleByUserEmail(email, pageable);
     }
 
     public Page<Item> getItemsByUser(Long userId, Pageable pageable) {
@@ -309,12 +316,14 @@ public class ItemService {
             
             // Get active trades count (transactions with PENDING status)
             long activeTrades = transactionRepo.countByStatus(TransactionStatus.PENDING);
+            // Get available items count
+            long availableCount = itemRepo.countByAvailable(true);
             
             log.info("Counts - SWAP: {}, SELL: {}, DONATE: {}, Active Trades: {}",
                     swapCount, saleCount, donateCount, activeTrades);
 
             // Create and return DTO with all counts
-            return new ItemCountsDTO(swapCount, saleCount, donateCount, activeTrades);
+            return new ItemCountsDTO(swapCount, saleCount, donateCount, activeTrades, availableCount);
         } catch (Exception e) {
             log.error("Error getting item counts by type", e);
             throw new RuntimeException("Failed to get item counts by type", e);

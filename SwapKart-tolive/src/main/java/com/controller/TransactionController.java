@@ -2,9 +2,10 @@ package com.controller;
 
 import com.dto.TransactionRequestDTO;
 import com.dto.TransactionResponseDTO;
+import com.entity.Item;
 import com.entity.Transaction;
+import com.entity.User;
 import com.entity.enums.TransactionStatus;
-import com.service.TransactionService;
 import com.service.impl.TransactionServiceImpl;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
@@ -147,17 +148,49 @@ public class TransactionController {
 
     private TransactionResponseDTO convertToDTO(Transaction transaction) {
         TransactionResponseDTO dto = new TransactionResponseDTO();
+        if (transaction == null) return dto;
+
         dto.setId(transaction.getId());
-        dto.setItemId(transaction.getItem().getId());
-        dto.setItemName(transaction.getItem().getTitle());
-        dto.setItemDescription(transaction.getItem().getDescription());
-        dto.setItemImage(String.valueOf(transaction.getItem().getImageUrls()));
-        dto.setSellerId(transaction.getBuyer().getId());
-        dto.setBuyerId(transaction.getBuyer().getId());
-        dto.setStatus(transaction.getStatus().name());
+
+        Item item = transaction.getItem();
+        if (item != null) {
+            dto.setItemId(item.getId());
+            dto.setItemName(item.getTitle());
+            dto.setItemDescription(item.getDescription());
+            dto.setItemImage(item.getImageUrls() != null && !item.getImageUrls().isEmpty()
+                    ? item.getImageUrls().get(0)
+                    : null);
+            dto.setAmount(item.getPrice() != null ? item.getPrice().longValue() : 0L);
+
+            User seller = item.getUser();
+            if (seller != null) {
+                dto.setSellerId(seller.getId());
+                dto.setSellerName(seller.getName());
+                dto.setSellerEmail(seller.getEmail());
+                dto.setSellerPhone(seller.getMobile());
+            }
+        } else {
+            dto.setAmount(0L);
+        }
+
+        User buyer = transaction.getBuyer();
+        if (buyer != null) {
+            dto.setBuyerId(buyer.getId());
+            dto.setBuyerName(buyer.getName());
+            dto.setBuyerEmail(buyer.getEmail());
+            dto.setBuyerPhone(buyer.getMobile());
+        }
+
+        dto.setType(transaction.getType());
+        dto.setStatus(transaction.getStatus() != null ? transaction.getStatus().name() : null);
+        dto.setMessage(transaction.getMessage());
         dto.setCreatedAt(transaction.getCreatedAt());
         dto.setUpdatedAt(transaction.getUpdatedAt());
-        dto.setType(transaction.getType());
+
+        if (transaction.getSwapItem() != null) {
+            dto.setSwapItemId(transaction.getSwapItem().getId());
+            dto.setSwapItemName(transaction.getSwapItem().getTitle());
+        }
 
         return dto;
     }

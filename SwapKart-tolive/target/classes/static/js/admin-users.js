@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const pagination = document.getElementById('pagination');
     let currentPage = 0;
     const pageSize = 10;
+    let totalUsers = 0; // total users returned by server
 
     // Load users with pagination
     function loadUsers(page = 0, search = '') {
@@ -24,8 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
         })
-        .then(data => {
-            renderUsers(data.content);
+        .then(async data => {
+            // update totalUsers for pagination
+            totalUsers = data.totalElements || (data.totalElements === 0 ? 0 : totalUsers);
+            await renderUsers(data.content);
             renderPagination(data);
         })
         .catch(error => {
@@ -34,22 +37,67 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Render users table
-    function renderUsers(users) {
+    // Render users table (async because we fetch ratings for each user)
+    async function renderUsers(users) {
         const tbody = usersTable.querySelector('tbody');
         tbody.innerHTML = '';
 
+        if (!Array.isArray(users) || users.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">No users found</td></tr>`;
+            return;
+        }
+
+        // Fetch ratings for all users in parallel (one call per user for avg + count)
+        const token = localStorage.getItem('token');
+
+        const ratingPromises = users.map(async (user) => {
+            const result = { average: null, count: 0 };
+            try {
+                const [avgResp, countResp] = await Promise.all([
+                    fetch(`/api/ratings/user/${user.id}/average`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`/api/ratings/user/${user.id}/count`, { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+
+                if (avgResp.ok) {
+                    const avg = await avgResp.json();
+                    result.average = avg;
+                }
+                if (countResp.ok) {
+                    const cnt = await countResp.json();
+                    result.count = cnt || 0;
+                }
+            } catch (e) {
+                // Ignore rating errors per user to avoid breaking the whole table
+                console.warn('Error fetching ratings for user', user.id, e);
+            }
+            return { userId: user.id, ...result };
+        });
+
+        const ratingsForUsers = await Promise.all(ratingPromises);
+        const ratingsMap = new Map(ratingsForUsers.map(r => [r.userId, { average: r.average, count: r.count }]));
+
         users.forEach(user => {
+            const ratingInfo = ratingsMap.get(user.id) || { average: null, count: 0 };
+            const avg = ratingInfo.average != null ? Number(ratingInfo.average).toFixed(1) : '0.0';
+            const count = ratingInfo.count || 0;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>#${user.id}</td>
-                <td>${user.name}</td>
-                <td>${user.email}</td>
-                <td>${user.role}</td>
+                <td>${user.name || ''}</td>
+                <td>${user.email || ''}</td>
+                <td>${user.role || ''}</td>
                 <td>
                     <span class="status ${user.active ? 'approved' : 'pending'}">
                         ${user.active ? 'Active' : 'Blocked'}
                     </span>
+                </td>
+                <td>
+                    <div class="rating-badge">
+                        <span class="rating-score">${avg}</span>
+                        <span class="text-muted small">(${count})</span>
+                        <button class="btn btn-sm btn-link p-0 ms-2" onclick="showReviews(${user.id})">View reviews</button>
+                    </div>
                 </td>
                 <td>
                     <button class="btn small edit me-1" data-user-id="${user.id}">
@@ -137,6 +185,74 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
+
+    // Show reviews modal for a user
+    window.showReviews = async function(userId) {
+        const token = localStorage.getItem('token');
+        const reviewsContainer = document.getElementById('reviewsContainer');
+        reviewsContainer.innerHTML = '<div class="text-center text-muted">Loading reviews...</div>';
+
+        try {
+            const response = await fetch(`/api/ratings/for-user/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch reviews');
+            }
+
+            const reviews = await response.json();
+
+            if (!Array.isArray(reviews) || reviews.length === 0) {
+                reviewsContainer.innerHTML = '<div class="text-center text-muted">No reviews yet</div>';
+            } else {
+                const html = reviews.map(r => `
+                    <div class="review-item d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-bold">${escapeHtml(r.raterName || r.raterId)}</div>
+                            <div class="text-muted small">${escapeHtml(r.comment || '')}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">${r.score}</div>
+                            <div class="text-muted small">${formatDate(r.createdAt)}</div>
+                        </div>
+                    </div>
+                `).join('');
+                reviewsContainer.innerHTML = `<div class="reviews-list">${html}</div>`;
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('reviewsModal'));
+            modal.show();
+        } catch (error) {
+            console.error('Error loading reviews:', error);
+            reviewsContainer.innerHTML = '<div class="text-center text-danger">Error loading reviews</div>';
+            const modal = new bootstrap.Modal(document.getElementById('reviewsModal'));
+            modal.show();
+        }
+    };
+
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        try {
+            const d = new Date(iso);
+            return d.toLocaleString();
+        } catch (e) {
+            return iso;
+        }
+    }
 
     // Edit user - Show modal with user details
     window.editUser = async function(userId) {
@@ -248,7 +364,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Change page
     window.changePage = function(page) {
-        if (page >= 0 && page < Math.ceil(totalUsers / pageSize)) {
+        const totalPages = Math.ceil((totalUsers || 0) / pageSize);
+        if (page >= 0 && page < totalPages) {
             currentPage = page;
             loadUsers(currentPage, searchInput.value);
         }

@@ -17,6 +17,26 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Logo and Branding */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .logo img {
+            height: 2.5rem;
+            width: auto;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
 body {
     background-color: var(--light-gray);
     color: var(--text-color);
@@ -48,11 +68,14 @@ body {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--medium-gray);
+    background-color: midnightblue;
 }
 
 .sidebar-header h2 {
     font-size: 1.5rem;
     font-weight: 600;
+    color: white;
+    margin-left: -85px;
 }
 
 .new-message-btn {
@@ -177,13 +200,14 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background-color: var(--white);
+    background-color: currentColor;
     border-bottom: 1px solid var(--medium-gray);
 }
 
 .chat-partner-info {
     display: flex;
     align-items: center;
+    color: blanchedalmond;
 }
 
 .chat-partner-info img {
@@ -290,7 +314,7 @@ body {
 
 .message-input-container {
     padding: 15px 20px;
-    background-color: var(--white);
+    background-color: currentColor;
     border-top: 1px solid var(--medium-gray);
 }
 

@@ -55,22 +55,31 @@ public class TransactionServiceImpl implements TransactionService {
 
     private TransactionResponseDTO convertToDto(Transaction transaction) {
         TransactionResponseDTO dto = new TransactionResponseDTO();
+        if (transaction == null) return dto;
         dto.setId(transaction.getId());
 
-        // Map item details
-        if (transaction.getItem() != null) {
-            dto.setItemId(transaction.getItem().getId());
-            dto.setItemName(transaction.getItem().getTitle());
-            dto.setItemDescription(transaction.getItem().getDescription());
-            dto.setItemImage(String.valueOf(transaction.getItem().getImageUrls()));
+        // Map item details (null-safe)
+        Item item = transaction.getItem();
+        if (item != null) {
+            dto.setItemId(item.getId());
+            dto.setItemName(item.getTitle());
+            dto.setItemDescription(item.getDescription());
+            // pick first image if available
+            dto.setItemImage(item.getImageUrls() != null && !item.getImageUrls().isEmpty()
+                    ? item.getImageUrls().get(0)
+                    : null);
+            // safe price handling
+            dto.setAmount(item.getPrice() != null ? item.getPrice().longValue() : 0L);
 
             // Map seller details
-            if (transaction.getItem().getUser() != null) {
-                dto.setSellerId(transaction.getItem().getUser().getId());
-                dto.setSellerName(transaction.getItem().getUser().getName());
-                dto.setSellerEmail(transaction.getItem().getUser().getEmail());
-                dto.setSellerPhone(transaction.getItem().getUser().getMobile());
+            if (item.getUser() != null) {
+                dto.setSellerId(item.getUser().getId());
+                dto.setSellerName(item.getUser().getName());
+                dto.setSellerEmail(item.getUser().getEmail());
+                dto.setSellerPhone(item.getUser().getMobile());
             }
+        } else {
+            dto.setAmount(0L);
         }
 
         // Map buyer details
@@ -88,7 +97,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         dto.setType(transaction.getType());
-        dto.setStatus(transaction.getStatus().name());
+        dto.setStatus(transaction.getStatus() != null ? transaction.getStatus().name() : null);
         dto.setMessage(transaction.getMessage());
         dto.setCreatedAt(transaction.getCreatedAt());
         dto.setUpdatedAt(transaction.getUpdatedAt());
@@ -112,7 +121,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         // Additional validation for swap
-        if (TransactionType.SWAP.equals(request.getType())) {
+        if (request.getType() != null && request.getType().equalsIgnoreCase(TransactionType.SWAP.name())) {
             validateSwapRequest(request, userEmail);
         }
 
@@ -247,7 +256,8 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         // Verify the user is the item owner
-        if (!transaction.getItem().getUser().getEmail().equals(userEmail)) {
+        if (transaction.getItem() == null || transaction.getItem().getUser() == null ||
+                !transaction.getItem().getUser().getId().equals(user.getId())) {
             throw new UnauthorizedException("You are not authorized to update this transaction");
         }
 
@@ -273,39 +283,45 @@ public class TransactionServiceImpl implements TransactionService {
 
     private TransactionResponseDTO mapToDTO(Transaction transaction) {
         TransactionResponseDTO dto = new TransactionResponseDTO();
+        if (transaction == null) return dto;
+
         dto.setId(transaction.getId());
 
-        // Item details
-        dto.setItemId(transaction.getItem().getId());
-        dto.setItemName(transaction.getItem().getTitle());
-        dto.setItemDescription(transaction.getItem().getDescription());
-        dto.setItemImage(transaction.getItem().getImageUrls() != null && !transaction.getItem().getImageUrls().isEmpty()
-                ? transaction.getItem().getImageUrls().get(0)
-                : null);
+        Item item = transaction.getItem();
+        if (item != null) {
+            dto.setItemId(item.getId());
+            dto.setItemName(item.getTitle());
+            dto.setItemDescription(item.getDescription());
+            dto.setItemImage(item.getImageUrls() != null && !item.getImageUrls().isEmpty()
+                    ? item.getImageUrls().get(0)
+                    : null);
+            dto.setAmount(item.getPrice() != null ? item.getPrice().longValue() : 0L);
 
-        // Seller details
-        User seller = transaction.getItem().getUser();
-        dto.setSellerId(seller.getId());
-        dto.setSellerName(seller.getName());
-        dto.setSellerEmail(seller.getEmail());
-        dto.setSellerPhone(seller.getMobile());
+            User seller = item.getUser();
+            if (seller != null) {
+                dto.setSellerId(seller.getId());
+                dto.setSellerName(seller.getName());
+                dto.setSellerEmail(seller.getEmail());
+                dto.setSellerPhone(seller.getMobile());
+            }
+        } else {
+            dto.setAmount(0L);
+        }
 
-        // Buyer details
         User buyer = transaction.getBuyer();
-        dto.setBuyerId(buyer.getId());
-        dto.setBuyerName(buyer.getName());
-        dto.setBuyerEmail(buyer.getEmail());
-        dto.setBuyerPhone(buyer.getMobile());
+        if (buyer != null) {
+            dto.setBuyerId(buyer.getId());
+            dto.setBuyerName(buyer.getName());
+            dto.setBuyerEmail(buyer.getEmail());
+            dto.setBuyerPhone(buyer.getMobile());
+        }
 
-        // Add these two lines to set the type and status
         dto.setType(transaction.getType());
         dto.setStatus(transaction.getStatus() != null ? transaction.getStatus().name() : null);
-
         dto.setMessage(transaction.getMessage());
         dto.setCreatedAt(transaction.getCreatedAt());
         dto.setUpdatedAt(transaction.getUpdatedAt());
 
-        // Swap item details if applicable
         if (transaction.getSwapItem() != null) {
             dto.setSwapItemId(transaction.getSwapItem().getId());
             dto.setSwapItemName(transaction.getSwapItem().getTitle());
@@ -313,6 +329,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         return dto;
     }
+
 
     @Override
     public List<Transaction> getReceivedTransactionsByStatus(String userEmail, TransactionStatus status) {

@@ -32,6 +32,7 @@ public class DashboardService {
 
         long totalItems = itemRepository.count();
         long newItemsToday = itemRepository.countByCreatedAtAfter(startOfDay);
+        // Use string-based counters to match the DB column (Item.active is a String)
         long activeItems = itemRepository.countByActive("true");
         long pendingItems = itemRepository.countByActive("false");
 

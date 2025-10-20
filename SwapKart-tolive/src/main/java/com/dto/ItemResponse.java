@@ -31,6 +31,8 @@ public class ItemResponse {
     private LocalDateTime updatedAt;
     private String active;
     private SellerDto seller;
+    private Boolean deleted; // soft-deleted flag
+    private Boolean deletedByAdmin; // indicates admin performed the delete
 
     @Data
     @Builder
@@ -78,6 +80,8 @@ public class ItemResponse {
                 .createdAt(item.getCreatedAt())
                 .updatedAt(item.getUpdatedAt())
                 .active(item.getActive())
+                .deleted(item.getDeleted())
+                .deletedByAdmin(item.getDeletedByAdmin())
                 .seller(item.getUser() != null ? SellerDto.fromUser(item.getUser()) : null)
                 .build();
     }

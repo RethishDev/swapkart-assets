@@ -61,4 +61,13 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     );
 
     List<Message> findByChatRoomIdAndReadFalseAndSenderNot(Long chatRoomId, User sender);
+
+    @Modifying
+    @Query("DELETE FROM Message m WHERE m.chatRoom.id = :chatRoomId")
+    void deleteByChatRoomId(@Param("chatRoomId") Long chatRoomId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Message m WHERE m.sender.id = :userId")
+    void deleteBySenderId(@Param("userId") Long userId);
 }

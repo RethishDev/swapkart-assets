@@ -34,6 +34,25 @@
             min-height: 100vh;
         }
 
+        /* Mobile Menu Toggle Button */
+        #sidebarToggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1050;
+            background: #4361ee;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
         /* Sidebar */
         .sidebar {
             min-height: 100vh;
@@ -42,21 +61,38 @@
             padding: 1.5rem 0;
             position: fixed;
             width: 250px;
-            transition: all 0.3s;
-            z-index: 1000;
+            transition: all 0.3s ease-in-out;
+            z-index: 1040;
+            transform: translateX(-100%);
         }
 
         .sidebar.active {
             transform: translateX(0);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
         }
 
         /* Main Content */
         .main-content {
-            margin-left: 250px;
+            margin-left: 0;
             padding: 2rem;
-            transition: all 0.3s;
+            transition: all 0.3s ease-in-out;
             min-height: 100vh;
+            padding-top: 4rem;
+        }
+
+        @media (min-width: 992px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 250px;
+                padding-top: 2rem;
+            }
+            
+            #sidebarToggle {
+                display: none;
+            }
         }
 
         /* Profile Container */
@@ -294,12 +330,12 @@
 </head>
 <body>
     <!-- Sidebar Toggle Button -->
-    <button id="sidebarToggle" class="d-lg-none">
+    <button id="sidebarToggle">
         <i class="fas fa-bars"></i>
     </button>
 
     <!-- Sidebar -->
-    <div class="sidebar d-none d-lg-block">
+    <div class="sidebar">
         <div class="d-flex flex-column h-100">
             <!-- Logo -->
             <div class="p-4 text-center">
@@ -421,6 +457,58 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/profile.js"></script>
 <script>
+    // Mobile menu functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        // Show/hide sidebar on mobile
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        function handleOutsideClick(event) {
+            if (window.innerWidth < 992 && 
+                !sidebar.contains(event.target) && 
+                event.target !== sidebarToggle && 
+                !sidebarToggle.contains(event.target)) {
+                sidebar.classList.remove('active');
+            }
+        }
+        
+        // Initialize
+        if (window.innerWidth < 992) {
+            sidebarToggle.style.display = 'flex';
+            sidebarToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+            document.addEventListener('click', handleOutsideClick);
+        } else {
+            sidebar.classList.add('active');
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 992) {
+                sidebar.classList.add('active');
+                sidebarToggle.style.display = 'none';
+            } else {
+                sidebarToggle.style.display = 'flex';
+            }
+        });
+        
+        // Cleanup function
+        return function() {
+            sidebarToggle.removeEventListener('click', toggleSidebar);
+            document.removeEventListener('click', handleOutsideClick);
+            window.removeEventListener('resize', handleOutsideClick);
+        };
+    });
+    
+    // Rest of the existing script
+    
     // Function to handle user logout
     async function handleLogout() {
         try {

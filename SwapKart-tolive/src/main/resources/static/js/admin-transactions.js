@@ -124,6 +124,8 @@ class TransactionManager {
             return;
         }
 
+        console.log(`Transaction Details: ${JSON.stringify(this.transactions[0], null, 2)}`);  // Formatted JSON
+
         tbody.innerHTML = this.transactions.map(t => `
             <tr>
                 <td>#${t.id}</td>
@@ -131,7 +133,7 @@ class TransactionManager {
                 <td>${t.sellerName || 'N/A'}</td>
                 <td>${t.itemName || 'N/A'}</td>
                 <td>${this.formatType(t.type)}</td>
-                <td>${t.amount != null ? `₹${t.amount}` : 'N/A'}</td>
+                <td>${(t.type === 'BUY' && t.amount != null) ? `₹${t.amount}` : (t.type === 'SWAP') ? 'FOR SWAP' : '🆓'}</td>
                 <td>${this.formatDate(t.createdAt)}</td>
                 <td><span class="status ${t.status.toLowerCase()}">${this.formatStatus(t.status)}</span></td>
                 <td>

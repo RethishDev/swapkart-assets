@@ -2,7 +2,11 @@ package com.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ItemCountsDTO {
     @JsonProperty("swap")
@@ -17,15 +21,8 @@ public class ItemCountsDTO {
     @JsonProperty("activeTrades")
     private long activeTrades;
 
-    // Constructors, getters, and setters
-    public ItemCountsDTO() {}
-
-    public ItemCountsDTO(long swap, long sale, long wanted, long activeTrades) {
-        this.swap = swap;
-        this.sale = sale;
-        this.wanted = wanted;
-        this.activeTrades = activeTrades;
-    }
+    @JsonProperty("availableCount")
+    private long availableCount;
 
     // Getters and Setters
     public long getSwap() { return swap; }
@@ -39,4 +36,7 @@ public class ItemCountsDTO {
     
     public long getActiveTrades() { return activeTrades; }
     public void setActiveTrades(long activeTrades) { this.activeTrades = activeTrades; }
+
+    public long getAvailableCount() { return availableCount; }
+    public void setAvailableCount(long availableCount) { this.availableCount = availableCount; }
 }

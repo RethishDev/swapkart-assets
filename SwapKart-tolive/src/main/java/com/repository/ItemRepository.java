@@ -78,12 +78,6 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
 
     /**
      * Count items by active status
-     * @param active true for active items, false for inactive
-     * @return Count of items with the given active status
-     */
-
-    /**
-     * Count items by active status
      * @param active status to count (as string: "true" or "false")
      * @return Count of items with the given active status
      */
@@ -96,6 +90,12 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
      */
     long countByAvailable(boolean isAvailable);
 
-    @Query("SELECT COUNT(i) FROM Item i WHERE i.type = :type AND i.status = 'AVAILABLE'")
+    @Query("SELECT COUNT(i) FROM Item i WHERE i.type = :type AND i.available = true")
     long countByType(@Param("type") ItemType type);
+
+    /**
+     * Find items for a user's "My Items" view where user-deleted items are hidden
+     */
+    @Query("SELECT i FROM Item i WHERE i.user.email = :email AND (i.deleted = false OR i.deletedByAdmin = true)")
+    Page<Item> findVisibleByUserEmail(@Param("email") String email, Pageable pageable);
 }

@@ -17,6 +17,7 @@ public class TransactionResponseDTO {
     private String itemName;
     private String itemDescription;
     private String itemImage;
+    private Long amount;
     private Long sellerId;
     private String sellerName;
     private String sellerEmail;

@@ -1,4 +1,4 @@
-    // DOM Elements
+// DOM Elements
     const itemsGrid = document.getElementById('itemsGrid');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const searchInput = document.getElementById('searchQuery');
@@ -51,13 +51,16 @@
             const ratingElement = document.getElementById('rating');
             const ratingCountElement = document.getElementById('ratingCount');
             
-            if (ratingData.averageRating) {
+            // Use null/undefined check so 0.0 is treated as a valid rating
+            if (ratingData && ratingData.averageRating != null) {
                 ratingElement.textContent = parseFloat(ratingData.averageRating).toFixed(1);
                 const reviewText = ratingData.ratingCount === 1 ? 'review' : 'reviews';
-                ratingCountElement.textContent = `Based on ${ratingData.ratingCount} ${reviewText}`;
-                
-                // Update star color based on rating
-                const starIcon = document.querySelector('#rating + .ms-2 .fa-star');
+                if (ratingCountElement) {
+                    ratingCountElement.textContent = `Based on ${ratingData.ratingCount} ${reviewText}`;
+                }
+
+                // Update star color based on rating (select a star within a known container)
+                const starIcon = document.querySelector('#rating + .ms-2 .fa-star') || document.querySelector('.user-rating .fa-star');
                 if (starIcon) {
                     starIcon.className = 'fas fa-star text-warning';
                 }
@@ -75,18 +78,26 @@
                 throw new Error('Failed to fetch item counts');
             }
             const counts = await response.json();
-            
+
             // Update the UI with the counts
             document.getElementById('swapItems').textContent = counts.swap || 0;
             document.getElementById('saleItems').textContent = counts.sell || 0;
             document.getElementById('wantedItems').textContent = counts.donate || 0;
-            
+
+            // Update available items count (is_available = true)
+            const totalEl = document.getElementById('totalItemsCount');
+            if (totalEl) {
+                // counts.availableCount expected from backend
+                totalEl.textContent = (counts.availableCount != null) ? counts.availableCount : (counts.count || 0);
+            }
+
             // Update active trades count
-            document.getElementById('activeTrades').textContent = counts.activeTrades || 0;
-            
+            const activeTradesEl = document.getElementById('activeTrades');
+            if (activeTradesEl) activeTradesEl.textContent = counts.activeTrades || 0;
+
             // Update user rating
             await updateUserRating();
-            
+
         } catch (error) {
             console.error('Error updating quick stats:', error);
             // Don't show error to user as it's not critical
@@ -225,10 +236,11 @@
 
             // Update total items count in the UI
             totalItems = itemsResponseData.totalElements || (countData && countData.count) || 0;
-            const totalItemsElement = document.getElementById('totalItemsCount');
-            if (totalItemsElement) {
-                totalItemsElement.textContent = totalItems;
-            }
+            // const totalItemsElement = document.getElementById('totalItemsCount');
+            // if (totalItemsElement) {
+            //     totalItemsElement.textContent = totalItems;
+            //     console.log('Total items updated in UI:', totalItems);
+            // }
 
             displayItems(itemsData);
             updatePagination();
@@ -271,7 +283,7 @@
                     <div class="unavailable-badge">
                         <i class="fas fa-ban me-1"></i> Unavailable
                     </div>` : ''}
-                    <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjUwJSIgeT0iNjUlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwMHgxNTA8L3RleHQ+Cjwvc3ZnPg=='}"
+                    <img src="${item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjUwJSIgeT0iNjUlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwMHgxNTA8L3RleHQ+Cjwvc3ZnPg=='}"
                          class="item-img ${isDisabled ? 'img-disabled' : ''}"
                          alt="${item.title}"
                          onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjUwJSIgeT0iNjUlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwMHgxNTA8L3RleHQ+PC9zdmc+';"

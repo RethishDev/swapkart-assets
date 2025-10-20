@@ -35,6 +35,19 @@
         .stat-card {
             border-left: 4px solid #4e73df;
         }
+        /* Rating cell styles */
+        .rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .rating-score {
+            font-weight: 600;
+        }
+        .reviews-list .review-item {
+            border-bottom: 1px solid #eee;
+            padding: 0.5rem 0;
+        }
     </style>
 </head>
 <body>
@@ -91,6 +104,7 @@
                     <div class="search-container">
                         <div class="input-group">
                             <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                            <label for="searchUsers" class="visually-hidden">Search users</label>
                             <input type="text" id="searchUsers" class="form-control" placeholder="Search users...">
                         </div>
                     </div>
@@ -107,6 +121,7 @@
                                     <th>Email</th>
                                     <th>Role</th>
                                     <th>Status</th>
+                                    <th>Ratings</th>
                                     <th class="text-end pe-4">Actions</th>
                                 </tr>
                             </thead>
@@ -116,18 +131,19 @@
                         </table>
                     </div>
                 </div>
-                
-                <!-- Card Footer -->
-                <div class="card-footer bg-white">
-                    <nav aria-label="Users pagination">
-                        <ul id="pagination" class="pagination justify-content-center mb-0">
-                            <!-- Will be populated by JavaScript -->
-                        </ul>
-                    </nav>
-                </div>
             </div>
-        </section>
-        </main>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer bg-white">
+            <nav aria-label="Users pagination">
+                <ul id="pagination" class="pagination justify-content-center mb-0">
+                    <!-- Will be populated by JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
     </div>
 </div>
 
@@ -142,8 +158,28 @@
     </div>
 </div>
 
+<!-- Reviews Modal -->
+<div class="modal fade" id="reviewsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Reviews</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reviewsContainer">
+                    <div class="text-center text-muted">Loading reviews...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/admin-users.js" type="module"></script>
+<script src="/js/admin-users.js"></script>
 
 <!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
@@ -182,9 +218,6 @@
     </div>
 </div>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/admin-users.js"></script>
 </body>
 </html>
 

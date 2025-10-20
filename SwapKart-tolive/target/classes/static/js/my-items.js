@@ -248,8 +248,20 @@ function renderItems(items) {
 
       items.forEach(item => {
           const card = document.createElement('div');
-          const isDisabled = item.active === false || item.active === 'false' || item.active === 'f';
-          card.className = `item-card ${isDisabled ? 'item-disabled' : ''}`;
+
+          // If the item was deleted by the user (soft-delete by owner), do not render it
+          if (item.deleted === true && (item.deletedByAdmin === false || item.deletedByAdmin == null)) {
+              // Skip rendering user-deleted items (they should not appear in My Items)
+              return;
+          }
+
+          // Determine admin-deleted vs admin-disabled vs normal
+          const isAdminDeleted = item.deleted === true && item.deletedByAdmin === true;
+
+          // isDisabled should reflect items that are inactive/disabled but not admin-deleted
+          const isDisabled = !isAdminDeleted && (item.active === false || item.active === 'false' || item.active === 'f');
+
+          card.className = `item-card ${isDisabled || isAdminDeleted ? 'item-disabled' : ''}`;
 
           const imageUrl = (item.imageUrls && item.imageUrls.length > 0)
               ? item.imageUrls[0]
@@ -267,16 +279,32 @@ function renderItems(items) {
                   .join(' ') :
               'N/A';
 
-          card.innerHTML = `
-              <img src="${imageUrl}" alt="${item.title}" class="item-image">
-              <div class="item-details">
-                  ${isDisabled ? `
+          // Build banner HTML depending on state
+          let stateBannerHtml = '';
+          if (isAdminDeleted) {
+              stateBannerHtml = `
+                  <div class="admin-deleted-banner" style="background:#ffe6e6;color:#a00;padding:8px;border-radius:6px;margin-bottom:8px;font-weight:600;">
+                      🗑️ DELETED BY ADMIN - This item has been removed by an administrator and is no longer available.
+                  </div>
+              `;
+          } else if (isDisabled) {
+              stateBannerHtml = `
                   <div class="admin-disabled-banner">
                       <marquee behavior="scroll" onmouseover="this.stop()" onmouseout="this.start()" direction="left" scrollamount="3">
                           🚫 ADMIN DISABLED - This item is currently unavailable to all users
                       </marquee>
                   </div>
-                  ` : ''}
+              `;
+          }
+
+          // Determine attributes for action buttons
+          const editDisabledAttr = (isDisabled || isAdminDeleted) ? 'disabled' : '';
+          const deleteHiddenAttr = isAdminDeleted ? 'hidden' : ''; // hide delete for admin-deleted items
+
+          card.innerHTML = `
+              <img src="${imageUrl}" alt="${item.title}" class="item-image">
+              <div class="item-details">
+                  ${stateBannerHtml}
                   <div class="item-header">
                       <h3 class="item-title">${item.title}</h3>
                       <span class="item-type ${item.type ? item.type.toLowerCase() : ''}">
@@ -292,10 +320,10 @@ function renderItems(items) {
                           <i class="fas fa-map-marker-alt"></i> ${item.city || 'N/A'}
                       </span>
                       <div class="item-actions">
-                          <button class="action-btn edit-btn" data-id="${item.id}" title="Edit Item" ${isDisabled ? 'disabled' : ''}>
-                              <i class="fas fa-edit"></i> ${isDisabled ? 'Edit (Disabled)' : 'Edit'}
+                          <button class="action-btn edit-btn" data-id="${item.id}" title="Edit Item" ${editDisabledAttr}>
+                              <i class="fas fa-edit"></i> ${isAdminDeleted ? 'Edit (Unavailable)' : (isDisabled ? 'Edit (Disabled)' : 'Edit')}
                           </button>
-                          <button class="action-btn delete-btn" data-id="${item.id}" title="Delete Item">
+                          <button class="action-btn delete-btn" data-id="${item.id}" title="Delete Item" ${deleteHiddenAttr}>
                               <i class="fas fa-trash"></i> Delete
                           </button>
                       </div>

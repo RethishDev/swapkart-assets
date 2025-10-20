@@ -153,18 +153,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         tbody.innerHTML = items.map(item => {
-            const isActive = item.active === 'true';
+            const isActive = (item.active === true || item.active === 'true');
+            const isDeleted = (item.deleted === true || item.deleted === 'true');
             const toggleStatus = !isActive;
-            
-            // Create the HTML string with proper escaping
+            const rowClass = isDeleted ? 'item-deleted' : '';
+
+            // Action buttons: if deleted, disable enable button and show label
+            const actionButtonHtml = isDeleted ?
+                `
+                <span class="deleted-label me-2">Deleted</span>
+                <button class="btn btn-sm btn-secondary" disabled>
+                    <i class="fas fa-ban"></i> Disabled
+                </button>
+                ` :
+                `
+                <button class="btn btn-sm ${isActive ? 'btn-disable' : 'btn-enable'}"
+                        onclick="toggleItemStatus('${item.id}', ${toggleStatus}, this)">
+                    <i class="fas ${isActive ? 'fa-ban' : 'fa-check'}"></i>
+                    ${isActive ? 'Disable' : 'Enable'}
+                </button>
+                `;
+
             return [
-                '<tr>',
+                `<tr class="${rowClass}">`,
                 `<td>#${item.id}</td>`,
                 '<td>',
                 '    <div class="d-flex align-items-center">',
                 `        <div class="me-3 bg-light rounded" style="width: 40px; height: 40px;">`,
                 item.images && item.images.length > 0 ? 
-                    `            <img src="/uploads/items/${item.images[0].imageUrl}" class="img-fluid rounded" alt="${item.title.replace(/"/g, '&quot;')}" style="width: 40px; height: 40px; object-fit: cover;">` : 
+                    `            <img src="/uploads/items/${item.images[0].imageUrl}" class="img-fluid rounded" alt="${(item.title||'').replace(/"/g, '&quot;')}" style="width: 40px; height: 40px; object-fit: cover;">` :
                     '            <i class="fas fa-box text-muted" style="font-size: 1.5rem;"></i>',
                 '        </div>',
                 '        <div>',
@@ -176,8 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 `<td>${item.category ? item.category.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'N/A'}</td>`,
                 `<td>${item.sellerName ? item.sellerName.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'N/A'}</td>`,
                 '<td>',
-                `    <span class="badge ${isActive ? 'bg-success' : 'bg-secondary'}">`,
-                `        ${isActive ? 'Active' : 'Inactive'}`,
+                `    <span class="badge ${isDeleted ? 'bg-danger' : (isActive ? 'bg-success' : 'bg-secondary')}">`,
+                `        ${isDeleted ? 'Deleted' : (isActive ? 'Active' : 'Inactive')}`,
                 '    </span>',
                 '</td>',
                 '<td class="text-end table-actions">',
@@ -188,11 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 '            title="View details">',
                 '        <i class="fas fa-eye"></i> View',
                 '    </button>',
-                `    <button class="btn btn-sm ${isActive ? 'btn-disable' : 'btn-enable'}" `,
-                `            onclick="toggleItemStatus('${item.id}', ${toggleStatus}, this)">`,
-                `        <i class="fas ${isActive ? 'fa-ban' : 'fa-check'}"></i>\n`,
-                `        ${isActive ? 'Disable' : 'Enable'}`,
-                '    </button>',
+                `    ${actionButtonHtml}`,
                 '</td>',
                 '</tr>'
             ].join('\n');
@@ -238,14 +251,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Toggle item status
     window.toggleItemStatus = async function(itemId, newStatus, button) {
+        const row = button ? button.closest('tr') : null;
+        const isDeleted = row ? row.classList.contains('item-deleted') : false;
+        if (isDeleted && newStatus === true) {
+            showToast('This item has been deleted and cannot be enabled', 'error');
+            return;
+        }
+
         if (!confirm(`Are you sure you want to ${newStatus ? 'enable' : 'disable'} this item?`)) {
             return;
         }
 
-        const originalText = button.innerHTML;
-        const row = button.closest('tr');
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        const originalText = button ? button.innerHTML : '';
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        }
 
         try {
             const response = await fetchWithAuth(`/${itemId}/status`, {
@@ -257,42 +278,54 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             showToast(`Item ${newStatus ? 'enabled' : 'disabled'} successfully`);
-            
+
             // Update the row appearance
-            if (newStatus) {
-                row.classList.remove('item-disabled');
-            } else {
-                row.classList.add('item-disabled');
+            if (row) {
+                if (newStatus) {
+                    row.classList.remove('item-disabled');
+                } else {
+                    row.classList.add('item-disabled');
+                }
+                // If the row is deleted, ensure deleted styling persists
+                if (row.classList.contains('item-deleted')) {
+                    // keep deleted look
+                }
             }
-            
+
             // Update the status badge
-            const statusBadge = row.querySelector('.badge');
-            if (statusBadge) {
-                statusBadge.className = `badge ${newStatus ? 'bg-success' : 'bg-secondary'}`;
-                statusBadge.textContent = newStatus ? 'Active' : 'Inactive';
+            if (row) {
+                const statusBadge = row.querySelector('.badge');
+                if (statusBadge && !row.classList.contains('item-deleted')) {
+                    statusBadge.className = `badge ${newStatus ? 'bg-success' : 'bg-secondary'}`;
+                    statusBadge.textContent = newStatus ? 'Active' : 'Inactive';
+                }
             }
-            
+
             // Update the button
-            const iconClass = newStatus ? 'fa-ban' : 'fa-check';
-            button.className = `btn btn-sm ${newStatus ? 'btn-disable' : 'btn-enable'}`;
-            button.innerHTML = `<i class="fas ${iconClass}"></i> ${newStatus ? 'Disable' : 'Enable'}`;
-            button.onclick = (e) => {
-                e.preventDefault();
-                toggleItemStatus(itemId, !newStatus, button);
-            };
-            
+            if (button && !row.classList.contains('item-deleted')) {
+                const iconClass = newStatus ? 'fa-ban' : 'fa-check';
+                button.className = `btn btn-sm ${newStatus ? 'btn-disable' : 'btn-enable'}`;
+                button.innerHTML = `<i class="fas ${iconClass}"></i> ${newStatus ? 'Disable' : 'Enable'}`;
+                button.onclick = (e) => {
+                    e.preventDefault();
+                    toggleItemStatus(itemId, !newStatus, button);
+                };
+            }
+
             // If there's a modal open, update the status there too
             const modalStatusBadge = document.querySelector('#viewItemModal .badge');
-            if (modalStatusBadge) {
+            if (modalStatusBadge && !modalStatusBadge.closest('.modal-body').classList.contains('item-deleted')) {
                 modalStatusBadge.className = `badge ${newStatus ? 'bg-success' : 'bg-secondary'}`;
                 modalStatusBadge.textContent = newStatus ? 'Active' : 'Inactive';
             }
-            
+
         } catch (error) {
             console.error('Error toggling item status:', error);
             showToast(error.message || 'Failed to update item status', 'error');
         } finally {
-            button.disabled = false;
+            if (button) {
+                button.disabled = false;
+            }
         }
     }
 
@@ -399,8 +432,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="col-6">
                                 <h6 class="text-muted mb-1">Status</h6>
                                 <p class="mb-0">
-                                    <span class="badge bg-${item.active ? 'success' : 'secondary'}">
-                                        ${item.active ? 'Active' : 'Inactive'}
+                                    <span class="badge bg-${(item.active === true || item.active === 'true') ? 'success' : 'secondary'}">
+                                        ${(item.active === true || item.active === 'true') ? 'Active' : 'Inactive'}
                                     </span>
                                 </p>
                             </div>
@@ -419,19 +452,37 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update modal content
             modalBody.innerHTML = contentHtml;
-            
+
+            // If item is deleted, show deleted label and disable enable action
+            if (item.deleted === true || item.deleted === 'true') {
+                const header = modalEl.querySelector('.modal-header');
+                if (header) {
+                    const delLabel = document.createElement('span');
+                    delLabel.className = 'deleted-label ms-2';
+                    delLabel.textContent = 'Deleted';
+                    header.appendChild(delLabel);
+                }
+            }
+
             // Create and add delete button if modalButtons exists
             if (modalButtons) {
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn btn-danger';
-                deleteBtn.innerHTML = '<i class="fas fa-trash me-1"></i> Delete Item';
-                deleteBtn.onclick = () => deleteItem(item.id, item.title || 'this item');
-                
-                // Clear and add button
-                modalButtons.innerHTML = '';
-                modalButtons.appendChild(deleteBtn);
+                // If item is deleted, don't show enable; just show a disabled button
+                if (item.deleted === true || item.deleted === 'true') {
+                    const disabledBtn = document.createElement('button');
+                    disabledBtn.className = 'btn btn-secondary';
+                    disabledBtn.disabled = true;
+                    disabledBtn.textContent = 'Deleted';
+                    modalButtons.appendChild(disabledBtn);
+                } else {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-danger';
+                    deleteBtn.innerHTML = '<i class="fas fa-trash me-1"></i> Delete Item';
+                    deleteBtn.onclick = () => deleteItem(item.id, item.title || 'this item');
+
+                    modalButtons.appendChild(deleteBtn);
+                }
             }
-            
+
             // Initialize tooltips in the modal
             initTooltips();
             

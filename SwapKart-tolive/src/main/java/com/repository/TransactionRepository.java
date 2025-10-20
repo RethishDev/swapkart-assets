@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.Optional;
@@ -31,7 +32,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @EntityGraph(attributePaths = {"item", "item.user", "buyer", "swapItem"})
     @Query("SELECT t FROM Transaction t WHERE t.id = :id")
     Optional<Transaction> findByIdWithRelationsQuery(@Param("id") Long id);
-    
+
     List<Transaction> findByBuyerId(Long buyerId);
     List<Transaction> findByItemUserId(Long userId);
     
@@ -71,5 +72,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     long countByStatus(@Param("status") TransactionStatus status);
 
     List<Transaction> findByItemIdOrSwapItemId(Long itemId, Long swapItemId);
+    
+    @Query("SELECT t FROM Transaction t WHERE t.item.user.id = :userId OR t.swapItem.user.id = :userId")
+    List<Transaction> findByItem_UserIdOrSwapItem_UserId(@Param("userId") Long userId, @Param("userId") Long userId2);
 
+    @Query("SELECT t FROM Transaction t WHERE t.buyer.id = :buyerId OR t.item.user.id = :userId")
+    List<Transaction> findByBuyerIdOrItem_UserId(@Param("buyerId") Long buyerId, @Param("userId") Long userId);
 }

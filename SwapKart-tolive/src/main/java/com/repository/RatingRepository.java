@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,22 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     Optional<Rating> findByTransactionIdAndRaterId(@Param("transactionId") Long transactionId, @Param("raterId") Long raterId);
 
     @Modifying
+    @Transactional
     @Query("DELETE FROM Rating r WHERE r.transaction.id IN :transactionIds")
     void deleteAllByTransactionIdIn(@Param("transactionIds") List<Long> transactionIds);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Rating r WHERE r.transaction.id = :transactionId")
+    void deleteByTransactionId(@Param("transactionId") Long transactionId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Rating r WHERE r.rater.id = :raterId")
+    void deleteByRaterId(@Param("raterId") Long raterId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Rating r WHERE r.ratedUser.id = :ratedUserId")
+    void deleteByRatedUserId(@Param("ratedUserId") Long ratedUserId);
 }

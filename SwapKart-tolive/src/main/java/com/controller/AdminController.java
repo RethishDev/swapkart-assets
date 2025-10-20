@@ -3,12 +3,12 @@ package com.controller;
 import com.dto.DashboardStats;
 import com.dto.PaginatedResponse;
 import com.dto.ItemResponseDto;
-import com.entity.Item;
-import com.entity.User;
-import com.entity.UserRole;
-import com.repository.ItemRepository;
-import com.repository.UserRepository;
+import com.entity.*;
+import com.repository.*;
+
+import java.util.List;
 import com.service.DashboardService;
+import com.service.ItemService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +17,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -29,17 +35,36 @@ public class AdminController {
 
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final ItemService itemService;
+    private final NotificationRepository notificationRepository;
+    private final TransactionRepository transactionRepository;
     private final DashboardService dashboardService;
+    private final RatingRepository ratingRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final MessageRepository messageRepository;
     private final Logger log = Logger.getLogger(AdminController.class.getName());
 
     // Constructor injection
-    public AdminController(UserRepository userRepository, ItemRepository itemRepository, DashboardService dashboardService) {
+    public AdminController(UserRepository userRepository, ItemRepository itemRepository,
+                          ItemService itemService,
+                          NotificationRepository notificationRepository,
+                          TransactionRepository transactionRepository,
+                          DashboardService dashboardService,
+                           RatingRepository ratingRepository,
+                           ChatRoomRepository chatRoomRepository,
+                           MessageRepository messageRepository) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
+        this.itemService = itemService;
+        this.notificationRepository = notificationRepository;
+        this.transactionRepository = transactionRepository;
         this.dashboardService = dashboardService;
+        this.ratingRepository = ratingRepository;
+        this.chatRoomRepository = chatRoomRepository;
+        this.messageRepository = messageRepository;
     }
 
-    // Get all users with pagination and filtering
+    // Get all users with pagination and filtering - only non-admin users (USER role)
     @GetMapping("/users")
     public ResponseEntity<PaginatedResponse<User>> getUsers(
             @RequestParam(defaultValue = "0") int page,
@@ -55,22 +80,29 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<User> usersPage;
 
-        if (search != null && !search.isEmpty()) {
-            usersPage = userRepository.findByEmailContainingIgnoreCaseOrNameContainingIgnoreCase(
-                    search, search, pageable);
-        } else {
-            usersPage = userRepository.findAll(pageable);
+        try {
+            if (search != null && !search.isEmpty()) {
+                // Use role-filtered search to return only USER role
+                usersPage = userRepository.findByRoleAndSearch(UserRole.USER, search, pageable);
+            } else {
+                usersPage = userRepository.findByRole(UserRole.USER, pageable);
+            }
+
+            PaginatedResponse<User> response = new PaginatedResponse<>(
+                    usersPage.getContent(),
+                    usersPage.getNumber(),
+                    usersPage.getSize(),
+                    usersPage.getTotalElements(),
+                    usersPage.getTotalPages()
+            );
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Error fetching users", e);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to load users: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
-        PaginatedResponse<User> response = new PaginatedResponse<>(
-                usersPage.getContent(),
-                usersPage.getNumber(),
-                usersPage.getSize(),
-                usersPage.getTotalElements(),
-                usersPage.getTotalPages()
-        );
-
-        return ResponseEntity.ok(response);
     }
 
     // Get user by ID
@@ -132,23 +164,98 @@ public class AdminController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Delete user
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    try {
-                        userRepository.delete(user);
-                        Map<String, String> response = new HashMap<>();
-                        response.put("message", "User deleted successfully");
-                        return ResponseEntity.ok(response);
-                    } catch (Exception e) {
-                        Map<String, String> error = new HashMap<>();
-                        error.put("error", "Failed to delete user: " + e.getMessage());
-                        return ResponseEntity.badRequest().body(error);
-                    }
-                })
-                .orElse(ResponseEntity.notFound().build());
+    @DeleteMapping("/users/{userId}")
+    @Transactional
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        try {
+            // Check if user exists first
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+            // Disallow deleting admin accounts via this endpoint
+            if (user.getRole() == UserRole.ROLE_ADMIN) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Cannot delete admin accounts");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+            }
+
+            // 1) Find all transactions related to the user (as buyer or as item owner / swap item owner)
+            Set<Transaction> relatedTransactions = new HashSet<>();
+            try {
+                List<Transaction> t1 = transactionRepository.findByBuyerId(userId);
+                if (t1 != null) relatedTransactions.addAll(t1);
+            } catch (Exception ignored) {}
+
+            try {
+                List<Transaction> t2 = transactionRepository.findByItemUserId(userId);
+                if (t2 != null) relatedTransactions.addAll(t2);
+            } catch (Exception ignored) {}
+
+            try {
+                List<Transaction> t3 = transactionRepository.findByItem_UserIdOrSwapItem_UserId(userId, userId);
+                if (t3 != null) relatedTransactions.addAll(t3);
+            } catch (Exception ignored) {}
+
+            // Collect transaction ids
+            List<Long> txIds = relatedTransactions.stream().map(Transaction::getId).collect(Collectors.toList());
+
+            // 2) Delete ratings associated with those transactions first to satisfy FK constraints
+            if (!txIds.isEmpty()) {
+                ratingRepository.deleteAllByTransactionIdIn(txIds);
+            }
+
+            // 3) Delete the transactions themselves
+            if (!relatedTransactions.isEmpty()) {
+                transactionRepository.deleteAll(relatedTransactions);
+            }
+
+            // 4) Delete ratings where the user is rater or rated user
+            try {
+                ratingRepository.deleteByRaterId(userId);
+            } catch (Exception ignored) {}
+            try {
+                ratingRepository.deleteByRatedUserId(userId);
+            } catch (Exception ignored) {}
+
+            // 5) Delete messages sent by the user
+            try {
+                messageRepository.deleteBySenderId(userId);
+            } catch (Exception ignored) {}
+
+            // 6) Delete all chat rooms and messages where the user is a participant or where item owned by user
+            try {
+                List<ChatRoom> userChatRooms = chatRoomRepository.findByItem_UserIdOrParticipantId(userId, userId);
+                for (ChatRoom chatRoom : userChatRooms) {
+                    // Delete all messages in the chat room first
+                    try { messageRepository.deleteByChatRoomId(chatRoom.getId()); } catch (Exception ignored) {}
+                    try { chatRoomRepository.delete(chatRoom); } catch (Exception ignored) {}
+                }
+            } catch (Exception ignored) {}
+
+            // 7) Delete notifications
+            try { notificationRepository.deleteByUserId(userId); } catch (Exception ignored) {}
+
+            // 8) Delete items owned by user (after deleting transactions/messages/rooms related to them)
+            try {
+                Page<Item> userItems = itemRepository.findByUserId(userId, PageRequest.of(0, Integer.MAX_VALUE));
+                for (Item item : userItems) {
+                    try { chatRoomRepository.deleteMessagesByItemId(item.getId()); } catch (Exception ignored) {}
+                    try { chatRoomRepository.deleteByItemId(item.getId()); } catch (Exception ignored) {}
+                    try { itemRepository.delete(item); } catch (Exception ignored) {}
+                }
+            } catch (Exception ignored) {}
+
+            // 9) Finally delete the user record
+            userRepository.delete(user);
+
+            return ResponseEntity.ok().build();
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+//            log.error("Error deleting user " + userId, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error deleting user: " + e.getMessage());
+        }
     }
 
     // Update user details
@@ -202,6 +309,24 @@ public class AdminController {
                     }
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Admin Dashboard Endpoints
+
+    /**
+     * Get dashboard statistics for admin
+     */
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<?> getDashboardStats() {
+        try {
+            DashboardStats stats = dashboardService.getDashboardStats();
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Error fetching dashboard stats", e);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to load dashboard stats: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 
     // Item Management Endpoints
@@ -279,6 +404,14 @@ public class AdminController {
                         if (active == null) {
                             throw new IllegalArgumentException("Active status is required");
                         }
+
+                        // If item was deleted (soft-delete), disallow re-enabling
+                        if (Boolean.TRUE.equals(item.getDeleted()) && Boolean.TRUE.equals(active)) {
+                            Map<String, String> error = new HashMap<>();
+                            error.put("error", "Item has been deleted and cannot be enabled");
+                            return ResponseEntity.badRequest().body(error);
+                        }
+
                         item.setActive(String.valueOf(active));
                         Item updatedItem = itemRepository.save(item);
 
@@ -303,25 +436,25 @@ public class AdminController {
      */
     @DeleteMapping("/items/{id}")
     public ResponseEntity<?> deleteItem(@PathVariable Long id) {
-        return itemRepository.findById(id)
-                .map(item -> {
-                    try {
-                        itemRepository.delete(item);
-                        Map<String, String> response = new HashMap<>();
-                        response.put("message", "Item deleted successfully");
-                        return ResponseEntity.ok(response);
-                    } catch (Exception e) {
-                        log.severe("Error deleting item: " + e.getMessage());
-                        Map<String, String> error = new HashMap<>();
-                        error.put("error", "Failed to delete item: " + e.getMessage());
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-                    }
-                })
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            // Delegate to ItemService admin delete which handles removing dependent entities safely
+            itemService.deleteItemAsAdmin(id);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Item deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (ResponseStatusException rse) {
+            // This preserves 404 semantics from the service
+            throw rse;
+        } catch (SecurityException se) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", se.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
+        } catch (Exception e) {
+            log.severe("Error deleting item: " + e.getMessage());
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to delete item: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 
-    @GetMapping("/dashboard/stats")
-    public ResponseEntity<DashboardStats> getDashboardStats() {
-        return ResponseEntity.ok(dashboardService.getDashboardStats());
-    }
 }
