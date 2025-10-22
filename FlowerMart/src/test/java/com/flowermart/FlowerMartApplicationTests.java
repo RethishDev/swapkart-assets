@@ -1,0 +1,13 @@
+package com.flowermart;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class FlowerMartApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
