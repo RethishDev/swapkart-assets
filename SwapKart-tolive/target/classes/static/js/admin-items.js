@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
             </tr>
         `;
-        
+
         try {
             // Build query parameters
             const params = new URLSearchParams({
@@ -191,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 '    </div>',
                 '</td>',
                 `<td>${item.category ? item.category.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'N/A'}</td>`,
+                `<td st>${item.type ? item.type.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'N/A'}</td>`,
                 `<td>${item.sellerName ? item.sellerName.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'N/A'}</td>`,
                 '<td>',
                 `    <span class="badge ${isDeleted ? 'bg-danger' : (isActive ? 'bg-success' : 'bg-secondary')}">`,

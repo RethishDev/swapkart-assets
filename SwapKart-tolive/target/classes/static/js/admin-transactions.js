@@ -133,7 +133,7 @@ class TransactionManager {
                 <td>${t.sellerName || 'N/A'}</td>
                 <td>${t.itemName || 'N/A'}</td>
                 <td>${this.formatType(t.type)}</td>
-                <td>${(t.type === 'BUY' && t.amount != null) ? `₹${t.amount}` : (t.type === 'SWAP') ? 'FOR SWAP' : '🆓'}</td>
+                <td>${(t.type === 'BUY' && t.amount != null) ? `₹${t.amount}` : (t.type === 'SWAP') ? 'FOR SWAP' : 'FREE'}</td>
                 <td>${this.formatDate(t.createdAt)}</td>
                 <td><span class="status ${t.status.toLowerCase()}">${this.formatStatus(t.status)}</span></td>
                 <td>

@@ -222,7 +222,7 @@ table.dataTable thead .sorting_desc:before {
 }
 
 .table tbody td {
-    padding: 1rem 1.5rem;
+    padding: 1rem 0.8rem;
     vertical-align: middle;
     border-top: 1px solid #e3e6f0;
     font-size: 0.9rem;
