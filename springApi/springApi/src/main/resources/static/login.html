@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: #f8f9fa;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .loader-overlay {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  background-color: rgba(255, 255, 255, 0.8);
+	  z-index: 9999;
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	}
+    @media (max-width: 576px) {
+      .login-box {
+        padding: 1rem;
+        border-radius: 10px;
+      }
+
+      h3 {
+        font-size: 1.4rem;
+      }
+
+      .form-label {
+        font-size: 0.9rem;
+      }
+
+      .btn {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <h3 class="mb-3 text-center">Login</h3>
+  <div id="loginAlert" class="alert d-none" role="alert"></div>
+
+  <form id="loginForm">
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input type="text" id="username" class="form-control" required />
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password 🙈</label>
+      <input type="password" id="password" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Login</button>
+  </form>
+  
+  <p class="text-center mt-3">
+    Don't have an account?
+    <a href="signup.html" class="btn btn-link">Signup</a>
+  </p>
+
+</div>
+
+<script>
+  const loginForm = document.getElementById('loginForm');
+  const loginAlert = document.getElementById('loginAlert');
+
+  loginForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+     // 🔄 Show SweetAlert loading dialog
+    Swal.fire({
+      title: 'Logging in...',
+      text: 'Please wait while we verify your credentials',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+    .then(res => {
+      if (res.ok) {
+      Swal.close(); // ✅ Close loader
+        // ✅ Redirect to dashboard or main app
+        window.location.replace('/dashboard.html');
+      } else {
+      Swal.close(); // ❗ close loader on failure
+        loginAlert.textContent = 'Invalid username or password!';
+        loginAlert.className = 'alert alert-danger';
+        loginAlert.classList.remove('d-none');
+      }
+    })
+    .catch(err => {
+      Swal.close(); // ❗ Close on exception
+      console.error(err);
+      loginAlert.textContent = 'Something went wrong!';
+      loginAlert.className = 'alert alert-danger';
+      loginAlert.classList.remove('d-none');
+    });
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
