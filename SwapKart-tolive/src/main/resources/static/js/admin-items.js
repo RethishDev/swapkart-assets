@@ -417,14 +417,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-12 col-md-6">
                         <h4 class="mb-3">${item.title || 'Item Details'}</h4>
-                        <div class="mb-3">
-                            <h6 class="text-muted mb-1">Description</h6>
-                            <p class="mb-0">${item.description || 'No description provided.'}</p>
-                        </div>
                         <div class="row g-3">
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1">Description</h6>
+                                <p class="mb-0">${item.description || 'No description provided.'}</p>
+                            </div>
                             <div class="col-6">
                                 <h6 class="text-muted mb-1">Category</h6>
                                 <p class="mb-0">${item.category || 'N/A'}</p>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-muted mb-1">Type</h6>
+                                <p class="mb-0" style="font-weight: bold; color: #007bff;">${item.type || 'N/A'}</p>
                             </div>
                             <div class="col-6">
                                 <h6 class="text-muted mb-1">Condition</h6>
@@ -442,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <h6 class="text-muted mb-1">Posted by</h6>
                                 <p class="mb-0">${item.sellerName || 'N/A'}</p>
                             </div>
-                            <div class="col-12">
+                            <div class="col-6">
                                 <h6 class="text-muted mb-1">Date Posted</h6>
                                 <p class="mb-0">${createdAt}</p>
                             </div>

@@ -70,7 +70,7 @@ public class Item {
     private User user;
 
     @Column(name = "active", nullable = false)
-    private String active;
+    private String active = "true";
 
     @Column(name = "deleted", nullable = false)
     @Builder.Default

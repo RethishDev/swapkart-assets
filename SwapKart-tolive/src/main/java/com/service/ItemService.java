@@ -71,7 +71,7 @@ public class ItemService {
                 .status(request.getStatus() != null ? request.getStatus() : ItemStatus.AVAILABLE)
                 .itemCondition(request.getCondition())
                 .user(user)
-                .active("t")
+                .active("true")
                 .build();
 
         // Ensure status is not null
