@@ -5,6 +5,8 @@ import com.entity.enums.ItemStatus;
 import lombok.Data;
 import jakarta.validation.constraints.DecimalMin;
 
+import java.util.List;
+
 @Data
 public class ItemRequest {
     private String title;
@@ -20,5 +22,5 @@ public class ItemRequest {
     
     private ItemStatus status = ItemStatus.AVAILABLE;
     
-    private String imageUrl;
+    private List<String> imageUrl;
 }

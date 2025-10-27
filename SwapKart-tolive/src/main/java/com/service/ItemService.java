@@ -81,17 +81,28 @@ public class ItemService {
 
         if (images != null && images.length > 0) {
             try {
-                MultipartFile firstImage = images[0];
+                // Save up to MAX_IMAGES files
+                final int MAX_IMAGES = 5;
+                Path uploadPath = Paths.get(uploadDir);
+                Files.createDirectories(uploadPath); // This will create the full path if it doesn't exist
 
-                if (!firstImage.isEmpty()) {
-                    Path uploadPath = Paths.get(uploadDir);
-                    Files.createDirectories(uploadPath); // This will create the full path if it doesn't exist
+                List<String> savedUrls = new java.util.ArrayList<>();
+                int count = 0;
+                for (MultipartFile img : images) {
+                    if (img == null || img.isEmpty()) continue;
+                    if (count >= MAX_IMAGES) break;
 
-                    String fileName = UUID.randomUUID() + "_" + firstImage.getOriginalFilename();
+                    String original = img.getOriginalFilename();
+                    String fileName = UUID.randomUUID() + "_" + (original != null ? original : "image");
                     Path filePath = uploadPath.resolve(fileName);
-                    firstImage.transferTo(filePath.toFile());
+                    img.transferTo(filePath.toFile());
 
-                    item.setImageUrls(List.of("/uploads/items/" + fileName));
+                    savedUrls.add("/uploads/items/" + fileName);
+                    count++;
+                }
+
+                if (!savedUrls.isEmpty()) {
+                    item.setImageUrls(savedUrls);
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Error saving image", e);
@@ -128,7 +139,7 @@ public class ItemService {
 
         // Add new image URL if provided
         if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
-            existingItem.addImageUrl(request.getImageUrl());
+            existingItem.addImageUrl(String.valueOf(request.getImageUrl()));
         }
 
         return itemRepo.save(existingItem);
