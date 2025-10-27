@@ -220,6 +220,29 @@
         <p class="lead mb-0">Here's what's happening with your account today</p>
     </div>
 
+    <!-- Image Slider -->
+    <div id="dashboardCarousel" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-pause="hover">
+        <div class="carousel-inner rounded-4 shadow-sm">
+            <div class="carousel-item active">
+                <img src="/images/analytics.jpg" class="d-block w-100" alt="Slide 1" style="height: 315px; object-fit: contain;">
+            </div>
+            <div class="carousel-item">
+                <img src="/images/features.jpg" class="d-block w-100" alt="Slide 2" style="height: 315px; object-fit: contain;">
+            </div>
+            <div class="carousel-item">
+                <img src="/images/userGuide.jpg" class="d-block w-100" alt="Slide 3" style="height: 315px; object-fit: contain;">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
     <!-- Stats Cards -->
     <div class="row">
         <div class="col-md-4">
@@ -337,6 +360,15 @@
             showToast('Error loading dashboard data');
         }
     }
+
+    const carousel = document.querySelector('#dashboardCarousel');
+    const bootstrapCarousel = new bootstrap.Carousel(carousel, {
+        interval: 3000, // 3 seconds per slide
+        ride: 'carousel',
+        pause: false, // keep sliding even when hovered
+        wrap: true // loop slides
+    });
+
 
     function handleLogout() {
         localStorage.clear();
