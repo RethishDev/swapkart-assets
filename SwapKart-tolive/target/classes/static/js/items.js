@@ -608,43 +608,61 @@
         const postDate = item.postDate || item.createdAt || new Date().toISOString();
         document.getElementById('itemDetailPostDate').textContent = `Posted on ${new Date(postDate).toLocaleDateString()}`;
 
-        // Set the item image with better error handling
-        const itemImage = document.getElementById('itemDetailImage');
+        // Placeholder SVG (same as your current one)
         const placeholderSVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+Tm8gSW1hZ2U8L3RleHQ+PHRleHQgeD0iNTAiIHk9IjY1JSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjMwMHgxNTA8L3RleHQ+PC9zdmc+';
 
-        // Function to set image source with error handling
-        const setImageSource = (src) => {
-            // Check if the source is a valid URL or base64 data
+        // Function to safely validate and return an image source or placeholder
+        const safeImageSrc = (src) => {
             if (src && (src.startsWith('http') || src.startsWith('data:image') || src.startsWith('/'))) {
-                itemImage.src = src;
-            } else {
-                itemImage.src = placeholderSVG;
+                return src;
             }
+            return placeholderSVG;
         };
 
-        // Try to set the image source with fallbacks
+        // Populate carousel images
+        const carouselInner = document.getElementById('itemImagesCarouselInner');
+        carouselInner.innerHTML = ''; // Clear previous images
+
         try {
-            if (item.imageUrl) {
-                setImageSource(item.imageUrl);
-            } else if (item.imageUrls && item.imageUrls.length > 0) {
-                setImageSource(item.imageUrls[0]);
+            let images = [];
+
+            // Collect available images in priority order
+            if (item.imageUrls && item.imageUrls.length > 0) {
+                images = item.imageUrls;
             } else if (item.images && item.images.length > 0) {
-                setImageSource(item.images[0]);
+                images = item.images;
+            } else if (item.imageUrl) {
+                images = [item.imageUrl];
             } else if (item.image) {
-                setImageSource(item.image);
+                images = [item.image];
+            }
+
+            // Populate the carousel
+            if (images.length > 0) {
+                images.forEach((src, index) => {
+                    const imgSrc = safeImageSrc(src);
+                    const div = document.createElement('div');
+                    div.classList.add('carousel-item');
+                    if (index === 0) div.classList.add('active');
+                    div.innerHTML = `<img src="${imgSrc}" class="d-block w-100 rounded" style="max-height:400px;object-fit:contain;">`;
+                    carouselInner.appendChild(div);
+                });
             } else {
-                itemImage.src = placeholderSVG;
+                // No images — show placeholder
+                carouselInner.innerHTML = `
+                    <div class="carousel-item active">
+                        <img src="${placeholderSVG}" class="d-block w-100 rounded" style="max-height:400px;object-fit:contain;">
+                    </div>
+                `;
             }
         } catch (error) {
-            console.error('Error setting item image:', error);
-            itemImage.src = placeholderSVG;
+            console.error('Error setting carousel images:', error);
+            carouselInner.innerHTML = `
+                <div class="carousel-item active">
+                    <img src="${placeholderSVG}" class="d-block w-100 rounded" style="max-height:400px;object-fit:contain;">
+                </div>
+            `;
         }
-
-        // Add error handler in case the image fails to load
-        itemImage.onerror = function() {
-            this.onerror = null;
-            this.src = placeholderSVG;
-        };
 
         // Set the badge
         const badgeElement = document.getElementById('itemDetailBadge');
