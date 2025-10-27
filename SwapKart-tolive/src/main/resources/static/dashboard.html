@@ -365,7 +365,7 @@
     const bootstrapCarousel = new bootstrap.Carousel(carousel, {
         interval: 3000, // 3 seconds per slide
         ride: 'carousel',
-        pause: false, // keep sliding even when hovered
+        pause: hover, // keep sliding if not hovered
         wrap: true // loop slides
     });
 
